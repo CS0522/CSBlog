@@ -516,12 +516,14 @@ plugins:
 
 
 ## 网站页面
-### 归档
+### 归档页面
 自动生成
 
-### 关于
+### 关于页面
+<details>
+<summary>source/about/index.md</summary>
+
 ```md 
-<!-- source/about/index.md -->
 ---
 layout: docs
 seo_title: 关于
@@ -533,40 +535,56 @@ twikoo:
 
 下面写关于自己的内容
 ```
+</details>
 
-### 分类
+
+### 分类页面
+<details>
+<summary>source/categories/index.md</summary>
+
 ```md
-<!-- source/categories/index.md -->
 ---
 layout: category
 index: true
 title: 所有分类
 ---
 ```
+</details>
 
-### 标签
+
+### 标签页面
+<details>
+<summary>source/tags/index.md</summary>
+
 ```md
-<!-- source/tags/index.md -->
 ---
 layout: tag
 index: true
 title: 所有标签
 ---
 ```
+</details>
 
-### 列表
+
+### 列表页面
+<details>
+<summary>source/mylist/index.md</summary>
+
 ```md
-<!-- source/mylist/index.md -->
 ---
 layout: list
 group: mylist
 index: true
 ---
 ```
+</details>
 
-### 404
+
+### 404页面
+<details>
+<summary>source/404.md</summary>
+
 ```md
-<!-- source/404.md -->
 ---
 cover: true
 robots: noindex,nofollow
@@ -582,5 +600,5 @@ twikoo:
 {% p logo center huge, 404 %}
 {% p center bold, 很抱歉，您访问的页面不存在 %}
 {% p center small, 可能是输入地址有误或该地址已被删除 %}
-
 ```
+</details>
