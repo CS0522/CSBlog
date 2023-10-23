@@ -1,0 +1,460 @@
+debug: false
+content_visibility: true
+
+########## 导航栏 ########## > start
+navbar:
+  visiable: auto # always, auto
+  logo: # choose [img] or [icon + title]
+    img: '' # volantis-static/media/org.volantis/blog/Logo-NavBar@3x.png
+    icon:
+    title: '诚实同学<sup style="color:#ff9800">Blog</sup>'
+  menu:
+    - name: 首页
+      icon: fa-solid fa-house
+      url: /
+    - name: 分类
+      icon: fa-solid fa-folder-open
+      url: categories/
+    - name: 标签
+      icon: fa-solid fa-tags
+      url: tags/
+    - name: 归档
+      icon: fa-solid fa-archive
+      url: archives/
+    # - name: 友链
+    #   icon: fa-solid fa-link
+    #   url: friends/
+    - name: 关于我
+      icon: fa-solid fa-info-circle
+      url: about/
+    - name: 暗黑模式
+      icon: fa-solid fa-moon
+      toggle: darkmode
+    # - name: 背景音乐
+    #   icon: fa-solid fa-compact-disc
+  search: 随便逛逛...   # Search bar placeholder
+########## 导航栏 ########## > end
+
+########## 封面 ########## > start
+cover:
+  height_scheme: full # full, half
+  layout_scheme: search # blank (留白), search (搜索), dock (坞), featured (精选), focus (焦点)
+  title: '欢迎来到诚实同学的博客'
+  subtitle: '"Patience is key in life."'
+  # 修改背景（静态，无视差滚动）
+  background: /images/91.jpg
+  features:
+    - name: 首页
+      # img: volantis-static/media/twemoji/assets/svg/1f4f0.svg
+      icon: fa-solid fa-home
+      url: /
+    - name: 分类
+      # img: volantis-static/media/twemoji/assets/svg/1f516.svg
+      icon: fa-solid fa-folder-open
+      url: categories/
+    - name: 标签
+      # img: volantis-static/media/twemoji/assets/svg/1f4af.svg
+      icon: fa-solid fa-tags
+      url: tags/
+    - name: 归档
+      # img: volantis-static/media/twemoji/assets/svg/1f5c3.svg
+      icon: fa-solid fa-archive
+      url: archives/
+    - name: 关于我
+      # img: volantis-static/media/twemoji/assets/svg/1f9ec.svg
+      icon: fa-solid fa-info-circle
+      url: about/
+########## 封面 ########## > end
+
+########## 文章 ########## > start
+article:
+  preview:
+    scheme: landscape # landscape
+    # pin icon for post
+    pin_icon: # volantis-static/media/twemoji/assets/svg/1f4cc.svg
+    # auto generate title if not exist
+    auto_title: true # false, true
+    auto_excerpt: true # false, true
+    # hide excerpt
+    hide_excerpt: false
+    # show split line or not
+    line_style: solid # hidden, solid, dashed, dotted
+    # show author
+    author: false # true, false
+    # show readmore button
+    readmore: auto # auto, always
+  body:
+    top_meta: [author, category, date, wordcount]
+    bottom_meta: [updated, tags, counter, share]
+    meta_library:
+      author:
+        # 个人头像
+        avatar: /images/userphoto02.png  # volantis-static/media/org.volantis/blog/favicon/apple-touch-icon.png
+        name: Chen Shi
+        url: https://github.com/CS0522/
+      date:
+        icon: fa-solid fa-calendar-alt
+        title: '发布于：'
+        format: 'll' # 日期格式 http://momentjs.com/docs/
+      updated:
+        icon: fa-solid fa-edit
+        title: '最后更新于：'
+        format: 'll' # 日期格式 http://momentjs.com/docs/
+      # 文章分类
+      category:
+        icon: fa-solid fa-folder-open
+      # TODO 文章浏览计数
+      counter:
+        icon: fa-solid fa-eye
+        unit: '次浏览'
+      # 文章字数和阅读时长
+      wordcount:
+        icon_wordcount: fa-solid fa-keyboard
+        icon_duration: fa-solid fa-hourglass-half
+      # 文章标签
+      tags:
+        icon: fa-solid fa-hashtag
+      # 分享
+      share:
+        - id: qq
+          img: volantis-static/media/org.volantis/logo/128/qq.png #  https://cdn.jsdelivr.net/gh/volantis-x/cdn-org/logo/128/qq.png
+        - id: qzone
+          img: volantis-static/media/org.volantis/logo/128/qzone.png #  https://cdn.jsdelivr.net/gh/volantis-x/cdn-org/logo/128/qzone.png
+        - id: weibo
+          img: volantis-static/media/org.volantis/logo/128/weibo.png #  https://cdn.jsdelivr.net/gh/volantis-x/cdn-org/logo/128/weibo.png
+        - id: # qrcode # 当id为qrcode时需要安装插件  npm i hexo-helper-qrcode
+          img: # volantis-static/media/org.volantis/logo/128/wechat.png #  https://cdn.jsdelivr.net/gh/volantis-x/cdn-org/logo/128/wechat.png
+        - id: # telegram
+          img: # volantis-static/media/org.volantis/logo/128/telegram.png #  https://cdn.jsdelivr.net/gh/volantis-x/cdn-org/logo/128/telegram.png
+
+########## 文章 ########## > end
+
+########## 评论 ########## > start
+# TODO 评论功能
+comments:
+  service: # giscus
+  giscus:
+    theme:
+      light: "light"
+      dark: "dark"
+    repo: volantis-x/community
+    repo-id: MDEwOlJlcG9zaXRvcnkyNDIzNjY1ODM=
+    mapping: "number"
+    term: "145"
+    reactions-enabled: "1"
+    emit-metadata: "0"
+    lang: "zh-CN"
+    input-position: "top"
+  disqus:
+    shortname: volantis
+    path: /
+  valine:
+    appId: FIKAgh6n0pUM08JXxhJHChVQ-MdYXbMMI
+    appKey: RJGiOYFc1fBvfox4frBPpRzU
+    path: /
+  utterances:
+    repo: volantis-x/community
+    issue-number: 115
+  beaudar:
+    repo: volantis-x/community  
+    issue-number: 115
+
+########## 评论 ########## > end
+
+########## 侧边栏 ########## > start
+sidebar:
+  for_page: [blogger, category, guide, tagcloud, webinfo]
+  for_post: [toc, webinfo]
+  widget_library:
+    toc:
+      class: toc
+      display: [desktop, mobile] # [desktop, mobile]
+      header:
+        icon: fa-solid fa-list
+        title: 本文目录
+      list_number: true
+      min_depth: 2
+      max_depth: 5
+
+    # 功能导航
+    guide:
+      class: grid
+      display: [desktop, mobile] # [desktop, mobile]
+      header:
+        icon: fa-solid fa-map-signs
+        title: 功能导航
+      fixed: true # 固定宽度
+      rows:
+        - name: 标签
+          icon: fa-solid fa-tags
+          url: tags/
+        - name: 归档
+          icon: fa-solid fa-archive
+          url: archives/
+        - name: 关于我
+          icon: fa-solid fa-info-circle
+          url: about/
+
+    blogger:
+      class: blogger
+      display: [desktop, mobile] # [desktop, mobile]
+      # 个人头像
+      avatar: /images/userphoto02_scaled.png  # https://gcore.jsdelivr.net/gh/xaoxuu/cdn-assets/avatar/avatar.png
+      title: Chen Shi
+      subtitle: <p>DLUT DRISE</p><p>2024届本科生</p>
+      jinrishici: false # Poetry Today. You can set a string, and it will be displayed when loading fails.
+      social:
+        - icon: fa-solid fa-envelope
+          url: mailto:chenshi020522@outlook.com
+        - icon: fa-brands fa-github
+          url: https://github.com/CS0522/
+        - icon: fa-brands fa-weixin
+          url: /images/weixin.png
+        - icon: fa-brands fa-qq
+          url: /images/qq.jpg
+        - icon: fa-brands fa-bilibili
+          url: https://space.bilibili.com/37047123/
+
+    # tagcloud widget
+    tagcloud:
+      class: tagcloud
+      display: [desktop, mobile] # [desktop, mobile]
+      header:
+        icon: fa-solid fa-tags
+        title: 标签
+        url: tags/
+      min_font: 14
+      max_font: 24
+      color: true
+      start_color: '#999'
+      end_color: '#555'
+
+    # webinfo widget
+    webinfo:
+      class: webinfo
+      display: [desktop, mobile]
+      header:
+        icon: fa-solid fa-award
+        title: 站点信息
+      type:
+        article:
+          enable: true
+          text: '文章数目：'
+          unit: '篇'
+        runtime:
+          enable: true
+          data: '2023/10/20'    # 填写建站日期
+          text: '已运行时间：'
+          unit: '天'
+        wordcount:
+          enable: true
+          text: '本站总字数：'   # 需要启用 wordcount
+          unit: '字'
+        visitcounter:
+          siteuv:
+            enable: true
+            text: '本站访客数：'
+            unit: '人'
+          sitepv:
+            enable: true
+            text: '本站总访问量：'
+            unit: '次'
+        lastupd:
+          enable: true
+          friendlyShow: true    # 更友好的时间显示
+          text: '最后活动时间：'
+          unit: '日'
+########## 侧边栏 ########## > end
+
+########### 底部 ########## > start
+site_footer:
+  layout: [social, source, copyright]
+  copyright: 'Copyright © Since 2023 诚实同学'
+  # 个人社交
+  social:
+    - icon: fa-solid fa-envelope
+      url: mailto:chenshi020522@outlook.com
+    - icon: fa-brands fa-github
+      url: https://github.com/CS0522/
+    - icon: fa-brands fa-weixin
+      url: /images/weixin.png
+    - icon: fa-brands fa-qq
+      url: /images/qq.jpg
+    - icon: fa-brands fa-bilibili
+      url: https://space.bilibili.com/37047123/
+
+########### 底部 ########## > end
+
+tag_plugins:
+  # {% note text %}
+  note: # style for default note:
+    iconfont: 'Font Awesome 6 Pro'
+
+
+########### 插件 ########## > start
+plugins:
+  clipboard:
+    enable: true
+  fontawesome: volantis-static/libs/@fortawesome/fontawesome-pro/css/all.min.css
+  # 修改背景
+  # 视差滚动效果 Slide Background
+  parallax:
+    enable: true
+    position: cover       # cover: sticky on the cover.   fixed: Fixed as background for the site.
+    shuffle: true         # shuffle playlist
+    duration: 10000       # Duration (ms)
+    fade: 1500            # fade duration (ms) (Not more than 1500)
+    images:               # For personal use only. At your own risk if used for commercial purposes !!!
+      - /images/91.jpg
+      # - volantis-static/media/wallpaper/minimalist/2020/001.webp
+      # - volantis-static/media/wallpaper/minimalist/2020/002.webp
+      # - volantis-static/media/wallpaper/minimalist/2020/003.webp
+      # - volantis-static/media/wallpaper/minimalist/2020/004.webp
+      # - volantis-static/media/wallpaper/minimalist/2020/005.webp
+
+  busuanzi:
+    enable: true
+  wordcount:
+    enable: true
+  # math expressions render
+  mathjax:
+    enable: true
+    per_page: false
+    cdn: //cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+  search:
+    enable: true
+    service: hexo
+  
+  aplayer:
+    enable: false
+    autoplay: false
+    volume: 0.4
+    order: random
+    # id: 4917530132 # vol red
+    # id: 4917524698 # vol blue
+    # id: 76244489 # vol white
+    # id: 5135845906 # for Volantis 3.0
+    id: 5062959861 # TOP 30
+  message:          # 音乐通知，播放、暂停、失败 时的图标
+    enable: true
+    icon:     # 默认图标，支持对图标添加颜色，可选值：see：/source/css/_plugins/message.styl
+      default: fa-light fa-info-circle light-blue
+      quection: fa-light fa-question-circle light-blue
+    copyright:  # 是否在复制时弹出版权提示
+      enable: false
+      title: '知识共享许可协议'
+      message: '请遵守 CC BY-NC-SA 4.0 协议。'
+      icon: 'fa-brands fa-creative-commons light-blue'
+    aplayer:
+      enable: false
+      play: fa-light fa-play light-blue
+      pause: fa-light fa-pause light-blue
+      error: fa-light fa-exclamation-square red
+  darkmode:
+    enable: true
+  gitter:
+    room: hexo-theme-volantis/community
+  scrollreveal:
+    enable: true
+
+########### 插件 ########## > end
+
+########### 美化 ########## > start
+custom_css:
+  cursor:
+    enable: false
+  font_smoothing: true
+  # navbar
+  navbar:
+   height: 64px
+   width: auto # auto, max
+   effect: [blur] # [shadow, floatable, blur]
+  sidebar:
+    effect: [blur] # [shadow, floatable, blur]
+  # scrollbar:
+  #  size: 4px
+  #  border: 2px
+  #  color: '#2196f3'
+  #  hover: '#ff5722'
+
+  body:
+    effect: [floatable, blur] # [shadow, floatable, blur]
+  # TODO 修改字体
+  fontfamily:
+    logofont:
+      fontfamily: 'Dosis, "PingFang SC", "Microsoft YaHei", Helvetica, Arial'
+      name: 'Dosis'
+      url: volantis-static/media/fonts/Dosis/Dosis-Medium.ttf
+      weight: normal
+      style: normal
+    bodyfont:
+      fontfamily: 'Dosis, "PingFang SC", "Microsoft YaHei", Helvetica, Arial'
+      name: 'Dosis'
+      url: volantis-static/media/fonts/Dosis/Dosis-Medium.ttf
+      weight: normal
+      style: normal
+
+########### 美化 ########## > end
+
+########### 右键菜单 ########## > start
+rightmenus:
+  enable: true
+  order:
+    - plugins.navigation  
+    - hr
+    - plugins.inputBox
+    - plugins.seletctText
+    - plugins.elementCheck
+    - plugins.elementImage
+    - hr
+    - menus.prevNext
+    - hr
+    # 不启用链接菜单
+    # - menus.links
+    - hr
+    - menus.darkMode
+    - hr
+    - plugins.articlePage
+    - hr
+    # - music
+  options:
+    iconPrefix: fa-duotone PETERRIVE
+    articleShowLink: true
+  plugins:
+    navigation: 
+      - {id: 'left', name: '转到上一页', icon: 'fa-duotone fa-arrow-left PETERRIVE', event: 'history.back()', group: 'navigation'}
+      - {id: 'right', name: '转到下一页', icon: 'fa-duotone fa-arrow-right PETERRIVE', event: 'history.forward()', group: 'navigation'}
+      - {id: 'redo', name: '刷新当前页面', icon: 'fa-duotone fa-redo PETERRIVE', event: 'window.location.reload()', group: 'navigation'}
+      # - {id: 'home', name: '回到首页', icon: 'fa-duotone fa-home PETERRIVE', link: '/', group: 'navigation'}
+      - {id: 'up', name: '回到顶部', icon: 'fa-duotone fa-arrow-up PETERRIVE', event: 'VolantisApp.scrolltoElement(volantis.dom.bodyAnchor)', group: 'navigation'}
+    articlePage:
+      - {id: 'printMode', name: '打印页面', icon: 'fa-duotone fa-print TURQUOISE', event: 'printMode', group: 'articlePage'}
+      - {id: 'readMode', name: '阅读模式', icon: 'fa-duotone fa-book-open EMERALD', event: 'readMode', group: 'articlePage'}
+    inputBox:
+      - {id: 'copyPaste', name: '粘贴文本', icon: 'fa-duotone PETERRIVE fa-paste', event: 'copyPaste', group: 'inputBox'}
+      - {id: 'copyAll', name: '全选文本', icon: 'fa-duotone PETERRIVE fa-object-ungroup', event: 'copyAll', group: 'inputBox'}
+      - {id: 'copyCut', name: '剪切文本', icon: 'fa-duotone PETERRIVE fa-cut', event: 'copyCut', group: 'inputBox'}
+    seletctText:
+      - {id: 'copyText', name: '复制文本', icon: 'fa-duotone PETERRIVE fa-copy', event: 'copyText', group: 'seletctText'}
+      - {id: 'searchWord', name: '站内搜索', icon: 'fa-duotone PETERRIVE fa-search', event: 'OpenSearch(__text__)', group: 'seletctText'}
+      - {id: 'bingSearch', name: '必应搜索', icon: 'fa-duotone PETERRIVE fa-search', event: 'window.open(`https://cn.bing.com/search?q=${__text__}`)', group: 'seletctText'}
+    elementCheck:
+      - {id: 'openTab', name: '新标签页打开', icon: 'fa-duotone PETERRIVE fa-external-link-square-alt', event: 'window.open(__link__)', group: 'elementCheck'}
+      - {id: 'copyLink', name: '复制链接地址', icon: 'fa-duotone PETERRIVE fa-link', event: 'copyLink', group: 'elementCheck'}
+    elementImage:
+      - {id: 'copyImg', name: '复制图片', icon: 'fa-duotone PETERRIVE fa-image', event: 'copyImg', group: 'elementImage'}
+      - {id: 'googleImg', name: '谷歌识图', icon: 'fa-duotone PETERRIVE fa-images', event: 'window.open(`https://www.google.com/searchbyimage?image_url=${__link__}`)', group: 'elementImage'}
+  menus:
+      links:
+        - {id: 'help', name: '常见问题', icon: 'fa-duotone fa-question EMERALD', link: '/faqs/', group: 'link'}
+        - {id: 'examples', name: '示例博客', icon: 'fa-duotone fa-rss PETERRIVE', link: '/examples/', group: 'link'}
+        - {id: 'contributors', name: '加入社区', icon: 'fa-duotone fa-fan fa-spin AMETHYST', link: '/contributors/', group: 'link'}
+        - hr
+        - {id: 'source_docs', name: '本站源码', icon: 'fa-duotone fa-code-branch WETASPHALT', link: 'https://github.com/volantis-x/volantis-docs/', group: 'link'}
+        - {id: 'source_theme', name: '主题源码', icon: 'fa-duotone fa-code-branch CONCRETE', link: 'https://github.com/volantis-x/hexo-theme-volantis/', group: 'link'}
+      darkMode: 
+        - {id: 'darkMode', name: '暗黑模式', icon: 'fa-duotone fa-eclipse-alt WISTERIA', event: 'volantis.dark.toggle()', group: 'darkMode'}
+      prevNext:
+        - {id: 'prev', name: '查看上一篇', icon: 'fa-duotone fa-angles-left PETERRIVE', event: "volantis.rightmenu.jump('prev')", group: 'prevNext'}
+        - {id: 'next', name: '查看下一篇', icon: 'fa-duotone fa-angles-right PETERRIVE', event: "volantis.rightmenu.jump('next')", group: 'prevNext'}
+########### 右键菜单 ########## > end
