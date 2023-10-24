@@ -305,7 +305,8 @@ plugins:
     duration: 10000       # Duration (ms)
     fade: 1500            # fade duration (ms) (Not more than 1500)
     images:               # For personal use only. At your own risk if used for commercial purposes !!!
-      - /images/91.jpg
+      # - /images/91.jpg
+      - /images/127.jpg
       # - volantis-static/media/wallpaper/minimalist/2020/001.webp
       # - volantis-static/media/wallpaper/minimalist/2020/002.webp
       # - volantis-static/media/wallpaper/minimalist/2020/003.webp
@@ -321,6 +322,7 @@ plugins:
     enable: true
     per_page: false
     cdn: //cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML
+  
   search:
     enable: true
     service: hexo

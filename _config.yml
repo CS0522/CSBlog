@@ -50,10 +50,10 @@ render_drafts: false
 
 # 文章内图片
 post_asset_folder: true
-marked:
-  enable: true
-  prependRoot: true
-  postAsset: true
+# marked:
+#   enable: true
+#   prependRoot: true
+#   postAsset: true
 
 relative_link: false
 future: true
@@ -121,12 +121,15 @@ ignore:
 busuanzi:
   enable: true
 
+# 数学
 math:
-  engine: 'mathjax'
   mathjax:
-    src: custom_mathjax_source
-    config:
-      # MathJax config
+    css: 'https://cdn.jsdelivr.net/npm/hexo-math@4.0.0/dist/style.css'
+    options:
+      conversion:
+        display: false
+      tex:
+      svg:
 
 ## Themes: https://hexo.io/themes/
 theme: volantis
@@ -134,7 +137,9 @@ theme: volantis
 # Deployment
 ## Docs: https://hexo.io/docs/one-command-deployment
 deploy:
-  type: git
-  repository: git@github.com:CS0522/CS0522.github.io.git
-  branch: master
-  message: "Last updated: {{ now('YYYY-MM-DD') }}"
+  - type: git
+    repository: git@github.com:CS0522/CS0522.github.io.git
+    branch: master
+  - type: git
+    repository: git@gitee.com:CS0522/CSBlog.git
+    branch: master

@@ -11,7 +11,7 @@ categories:
   - SimPy
 comments: false
 cover: false
-date: 2023-10-23 20:13:23
+date: 2023-10-24 08:13:23
 ---
 
 学习 SimPy 的一些核心概念，分为 Environment 的进程交互和 Resource 的资源共享
@@ -29,7 +29,7 @@ date: 2023-10-23 20:13:23
 * 仿真启动：`simpy.Environment.run()`
 * 现在的时间：`simpy.Environment.now`
 
-### Example 03
+### Example 2.1
 <details>
 <summary>定义一个进程，仿真的简单代码结构</summary>
 
@@ -55,7 +55,7 @@ env.run(until = 15)   # 设定仿真结束条件, 这里是 15s 后停止
 ```
 </details>
 
-### Example 04
+### Example 2.2
 <details>
 <summary>描述一个汽车驾驶一段时间后停车充电， 汽车驾驶进程和电池充电进程通过事件的激活来相互影响</summary>
 
@@ -142,7 +142,7 @@ Charge sleep at:  226
 ```
 </details>
 
-### Example 05
+### Example 2.3
 <details>
 <summary>在电动汽车还在充电过程中，接到一个紧急通知，需要中断充电进程马上出门</summary>
 
@@ -212,7 +212,7 @@ if __name__ == "__main__":
 * 存在分类：`simpy.FilterStore`
 * 连续不可分的元素：`simpy.Container`
 
-### Example 06
+### Example 2.4
 <details>
 <summary>电动汽车使用两个充电桩中间的一个进行充电。如果这两个点都在使用，汽车将等待其中一个点直至其再次可用，然后开始给充电，完成后离开充电站</summary>
 
@@ -244,6 +244,11 @@ env.run()
 ```
 </details>
 
+资源 `resource` 的 `request()` 方法生成一个事件 `event`， 该事件会等待直至资源可用。之后一直拥有资源，直至资源被释放。
+
+在代码中使用 `with` 构造资源的请求使用，资源在使用后将`自动释放`。如果没通过 `with` 使用 `request()`，需要自行使用 `release()` 释放资源。
+
+释放资源后，下一个等待的进程将激活，占用资源。资源的排队规则遵循`先进先出 FIFO`策略。
 
 <details>
 <summary>查看结果</summary>
@@ -264,7 +269,7 @@ env.run()
 ```
 </details>
 
-### Example 07
+### Example 2.5
 <details>
 <summary>银行排队服务例子：一个柜台对客户进行服务，服务耗时，客户等候过长会离开柜台</summary>
 
@@ -345,4 +350,15 @@ Bank renege
 </details>
 
 
-### 
+
+<br>
+<br>
+<br>
+
+SimPy 学习  
+
+* {% post_link simpy-learning-01 %}  
+
+* {% post_link simpy-learning-02 %}  
+
+* {% post_link simpy-learning-03 %}

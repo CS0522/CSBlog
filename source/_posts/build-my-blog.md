@@ -616,6 +616,7 @@ twikoo:
 * `escape` 用于防止特殊字符转义
 
 例子：
+
 * 链接使用文章的标题
   ```md
   {% post_link hexo-3-8-released %}
@@ -639,3 +640,19 @@ twikoo:
   {% post_link hexo-4-released '<b>bold</b> custom title' false %}
   ```
   <b>bold</b> custom title
+
+
+### 2. 数学公式渲染？
+> 更换渲染引擎
+
+```bash
+npm uninstall hexo-renderer-marked
+npm uninstall hexo-math
+
+# pandoc
+npm install hexo-renderer-pandoc
+# 这个插件必须要
+npm install hexo-filter-mathjax
+
+sudo apt install pandoc
+```
