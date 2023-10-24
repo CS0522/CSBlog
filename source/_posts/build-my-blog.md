@@ -14,7 +14,7 @@ cover: false
 date: 2023-10-22 00:00:00
 ---
 
-记录搭建本博客的 Codes，以及遇到的一些问题及解决方案
+记录搭建本博客的过程，以及遇到的一些问题及解决方案
 
 <!-- more -->
 
@@ -602,3 +602,40 @@ twikoo:
 {% p center small, 可能是输入地址有误或该地址已被删除 %}
 ```
 </details>
+
+
+## 问题与解答
+
+### 1. 站内文章跳转？
+> 参考[官方文档](https://hexo.io/zh-cn/docs/tag-plugins#%E5%BC%95%E7%94%A8%E6%96%87%E7%AB%A0)
+
+```md
+{% post_path filename %}
+{% post_link filename [title] [escape] %}
+```
+* `escape` 用于防止特殊字符转义
+
+例子：
+* 链接使用文章的标题
+  ```md
+  {% post_link hexo-3-8-released %}
+  ```
+  Hexo 3.8.0 Released
+
+* 链接使用自定义文字
+  ```md
+  {% post_link hexo-3-8-released '通往文章的链接' %}
+  ```
+  通往文章的链接
+
+* 对标题的特殊字符进行转义
+  ```md
+  {% post_link hexo-4-released 'How to use <b> tag in title' %}
+  ```
+  How to use \<b> tag in title
+
+* 禁止对标题的特殊字符进行转义
+  ```md
+  {% post_link hexo-4-released '<b>bold</b> custom title' false %}
+  ```
+  <b>bold</b> custom title

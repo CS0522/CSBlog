@@ -137,4 +137,4 @@ deploy:
   type: git
   repository: git@github.com:CS0522/CS0522.github.io.git
   branch: master
-  message: "Last updated: {{ now('YYYY/MM/DD') }}"
+  message: "Last updated: {{ now('YYYY-MM-DD') }}"

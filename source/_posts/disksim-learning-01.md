@@ -1,5 +1,5 @@
 ---
-title: 【文档小记】DiskSim 使用（一）：安装
+title: 【学习笔记】DiskSim 学习（一）：安装
 tags:
   - DiskSim
   - Linux
@@ -7,13 +7,14 @@ toc: true
 languages:
   - zh-CN
 categories:
-  - 文档小记
+  - 学习笔记
+  - DiskSim
 comments: false
 cover: false
 date: 2023-10-23 20:17:11
 ---
 
-记录老东西 DiskSim 环境的配置与使用
+老东西 DiskSim 环境的配置
 
 <!-- more -->
 
