@@ -199,7 +199,7 @@ sidebar:
       class: blogger
       display: [desktop, mobile] # [desktop, mobile]
       # 个人头像
-      avatar: /images/userphoto02_scaled.png  # https://gcore.jsdelivr.net/gh/xaoxuu/cdn-assets/avatar/avatar.png
+      avatar: https://z1.ax1x.com/2023/10/25/piVubH1.png # /images/userphoto02_scaled.png  # https://gcore.jsdelivr.net/gh/xaoxuu/cdn-assets/avatar/avatar.png
       title: Chen Shi
       subtitle: <p>DLUT DRISE</p><p>2024届本科生</p>
       jinrishici: false # Poetry Today. You can set a string, and it will be displayed when loading fails.
@@ -306,7 +306,8 @@ plugins:
     fade: 1500            # fade duration (ms) (Not more than 1500)
     images:               # For personal use only. At your own risk if used for commercial purposes !!!
       # - /images/91.jpg
-      - /images/127.jpg
+      # - /images/127.jpg
+      - https://z1.ax1x.com/2023/10/25/piVKoPf.jpg
       # - volantis-static/media/wallpaper/minimalist/2020/001.webp
       # - volantis-static/media/wallpaper/minimalist/2020/002.webp
       # - volantis-static/media/wallpaper/minimalist/2020/003.webp
