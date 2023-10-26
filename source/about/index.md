@@ -11,10 +11,10 @@ sidebar: [blogger, category, guide, tagcloud, webinfo]
 </div>
 <div class="text" style="margin-left: 5%;">
 <p style="font-weight: bold; font-size: 30px">Chen Shi</p>
-<p style="font-size: 1.8vw" align="left">电话：{% psw 18717109651 %}</p>
-<p style="font-size: 1.8vw" align="left">邮箱：<a href="mailto: chenshi020522@outlook.com" target="_blank">chenshi020522@outlook.com</a></p>
-<p style="font-size: 1.2vw" align="left">2002&nbsp;年&nbsp;5&nbsp;月&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;汉族&nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;湖北武汉&nbsp;&nbsp;&nbsp;</p>
-<p style="font-size: 1.8vw" align="left"><a href="https://CS0522.github.io" target="_blank">https://CS0522.github.io</a></p>
+<p style="font-size: 20px" align="left">Mobile: {% psw 18717109651 %}</p>
+<p style="font-size: 20px" align="left">Email: <a href="mailto: chenshi020522@outlook.com" target="_blank">chenshi020522@outlook.com</a></p>
+<p style="font-size: 20px" align="left">Blog1: <a href="https://CS0522.github.io" target="_blank">https://CS0522.github.io</a></p>
+<p style="font-size: 20px" align="left">Blog2: <a href="https://CS0522.gitee.io" target="_blank">https://CS0522.gitee.io</a></p>
 </div>
 </div>
 

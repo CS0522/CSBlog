@@ -42,7 +42,7 @@ cover:
   title: '欢迎来到诚实同学的博客'
   subtitle: '"Patience is key in life."'
   # 修改背景（静态，无视差滚动）
-  background: /images/91.jpg
+  background: /images/covers/cover01.jpg
   features:
     - name: 首页
       # img: volantis-static/media/twemoji/assets/svg/1f4f0.svg
@@ -89,7 +89,7 @@ article:
     meta_library:
       author:
         # 个人头像
-        avatar: /images/userphoto02.png  # volantis-static/media/org.volantis/blog/favicon/apple-touch-icon.png
+        avatar: /images/userphoto/userphoto02.png  # volantis-static/media/org.volantis/blog/favicon/apple-touch-icon.png
         name: Chen Shi
         url: https://github.com/CS0522/
       date:
@@ -199,7 +199,7 @@ sidebar:
       class: blogger
       display: [desktop, mobile] # [desktop, mobile]
       # 个人头像
-      avatar: https://z1.ax1x.com/2023/10/25/piVubH1.png # /images/userphoto02_scaled.png  # https://gcore.jsdelivr.net/gh/xaoxuu/cdn-assets/avatar/avatar.png
+      avatar: /images/userphoto/userphoto02_scaled.png  # https://gcore.jsdelivr.net/gh/xaoxuu/cdn-assets/avatar/avatar.png
       title: Chen Shi
       subtitle: <p>DLUT DRISE</p><p>2024届本科生</p>
       jinrishici: false # Poetry Today. You can set a string, and it will be displayed when loading fails.
@@ -302,12 +302,19 @@ plugins:
     enable: true
     position: cover       # cover: sticky on the cover.   fixed: Fixed as background for the site.
     shuffle: true         # shuffle playlist
-    duration: 10000       # Duration (ms)
-    fade: 1500            # fade duration (ms) (Not more than 1500)
+    duration: 60000       # Duration (ms)
+    fade: 500             # fade duration (ms) (Not more than 1500)
     images:               # For personal use only. At your own risk if used for commercial purposes !!!
-      # - /images/91.jpg
-      # - /images/127.jpg
-      - https://z1.ax1x.com/2023/10/25/piVKoPf.jpg
+      - /images/covers/cover01.jpg
+      - /images/covers/cover02.jpg
+      - /images/covers/cover03.jpg
+      - /images/covers/cover04.jpg
+      - /images/covers/cover05.jpg
+      - /images/covers/cover06.jpg
+      - /images/covers/cover07.jpg
+      - /images/covers/cover08.jpg
+      - /images/covers/cover09.jpg
+      - /images/covers/cover10.jpg
       # - volantis-static/media/wallpaper/minimalist/2020/001.webp
       # - volantis-static/media/wallpaper/minimalist/2020/002.webp
       # - volantis-static/media/wallpaper/minimalist/2020/003.webp
@@ -381,19 +388,25 @@ custom_css:
   #  hover: '#ff5722'
 
   body:
-    effect: [floatable, blur] # [shadow, floatable, blur]
-  # TODO 修改字体
+    effect: [blur] # [shadow, floatable, blur]
+  # 修改字体
   fontfamily:
     logofont:
-      fontfamily: 'Dosis, "PingFang SC", "Microsoft YaHei", Helvetica, Arial'
-      name: 'Dosis'
-      url: volantis-static/media/fonts/Dosis/Dosis-Medium.ttf
+      fontfamily: 'UbuntuMono, "PingFang SC", "Microsoft YaHei", Helvetica, Arial'
+      name: 'UbuntuMono'
+      url: volantis-static/media/fonts/UbuntuMono/UbuntuMono-Regular.ttf # volantis-static/media/fonts/Dosis/Dosis-Medium.ttf
       weight: normal
       style: normal
     bodyfont:
-      fontfamily: 'Dosis, "PingFang SC", "Microsoft YaHei", Helvetica, Arial'
-      name: 'Dosis'
-      url: volantis-static/media/fonts/Dosis/Dosis-Medium.ttf
+      fontfamily: 'UbuntuMono, "PingFang SC", "Microsoft YaHei", Helvetica, Arial'
+      name: 'UbuntuMono'
+      url: volantis-static/media/fonts/UbuntuMono/UbuntuMono-Regular.ttf # volantis-static/media/fonts/Dosis/Dosis-Medium.ttf
+      weight: normal
+      style: normal
+    codefont:
+      fontfamily: 'UbuntuMono, Monaco'
+      name: 'UbuntuMono'
+      url: volantis-static/media/fonts/UbuntuMono/UbuntuMono-Regular.ttf # volantis-static/media/fonts/Monaco/Monaco.ttf # https://cdn.jsdelivr.net/gh/volantis-x/cdn-fonts/Monaco/Monaco.ttf
       weight: normal
       style: normal
 

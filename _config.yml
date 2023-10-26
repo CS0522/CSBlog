@@ -18,7 +18,7 @@ timezone: 'Asia/Shanghai'
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
-url: https://CS0522.github.io/
+url: https://CS0522.gitee.io/
 permalink: :category/:title/
 permalink_defaults:
   lang: zh-CN
@@ -82,7 +82,7 @@ index_generator:
   order_by: -date
 
 # Category & Tag
-# TODO 需要修改
+# 需要修改
 default_category: notes
 # 学习笔记 - notes，论文随记 - learnings，文档小记 - docs
 category_map: 
@@ -141,5 +141,5 @@ deploy:
     repository: git@github.com:CS0522/CS0522.github.io.git
     branch: master
   - type: git
-    repository: git@gitee.com:CS0522/CSBlog.git
+    repository: git@gitee.com:CS0522/CS0522.git
     branch: master
