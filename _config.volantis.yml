@@ -404,7 +404,7 @@ custom_css:
       weight: normal
       style: normal
     codefont:
-      fontfamily: 'UbuntuMono, Monaco'
+      fontfamily: 'UbuntuMono, "PingFang SC", "Microsoft YaHei", Helvetica, Arial'
       name: 'UbuntuMono'
       url: volantis-static/media/fonts/UbuntuMono/UbuntuMono-Regular.ttf # volantis-static/media/fonts/Monaco/Monaco.ttf # https://cdn.jsdelivr.net/gh/volantis-x/cdn-fonts/Monaco/Monaco.ttf
       weight: normal

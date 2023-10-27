@@ -294,7 +294,7 @@ article:
       # 文章分类
       category:
         icon: fa-solid fa-folder-open
-      # TODO 文章浏览计数
+      # 文章浏览计数
       counter:
         icon: fa-solid fa-eye
         unit: '次浏览'
@@ -463,13 +463,41 @@ site_footer:
 </details>
 
 
+#### 网站字体
+<details>
+<summary>点击查看</summary>
+
+```yml
+fontfamily:
+    logofont:
+      fontfamily: 'UbuntuMono, "PingFang SC", "Microsoft YaHei", Helvetica, Arial'
+      name: 'UbuntuMono'
+      url: volantis-static/media/fonts/UbuntuMono/UbuntuMono-Regular.ttf # volantis-static/media/fonts/Dosis/Dosis-Medium.ttf
+      weight: normal
+      style: normal
+    bodyfont:
+      fontfamily: 'UbuntuMono, "PingFang SC", "Microsoft YaHei", Helvetica, Arial'
+      name: 'UbuntuMono'
+      url: volantis-static/media/fonts/UbuntuMono/UbuntuMono-Regular.ttf # volantis-static/media/fonts/Dosis/Dosis-Medium.ttf
+      weight: normal
+      style: normal
+    codefont:
+      fontfamily: 'UbuntuMono, "PingFang SC", "Microsoft YaHei", Helvetica, Arial'
+      name: 'UbuntuMono'
+      url: volantis-static/media/fonts/UbuntuMono/UbuntuMono-Regular.ttf # volantis-static/media/fonts/Monaco/Monaco.ttf # https://cdn.jsdelivr.net/gh/volantis-x/cdn-fonts/Monaco/Monaco.ttf
+      weight: normal
+      style: normal
+```
+</details>
+
+
 #### 插件
 我装的插件：
 - hexo-deployer-git
 - hexo-generator-json-content
 - hexo-wordcount
-- hexo-math
-- hexo-renderer-marked
+- hexo-renderer-pandoc
+- hexo-filter-mathjax
 
 记得在配置文件中启用插件
 
@@ -485,15 +513,19 @@ plugins:
     enable: true
     position: cover       # cover: sticky on the cover.   fixed: Fixed as background for the site.
     shuffle: true         # shuffle playlist
-    duration: 10000       # Duration (ms)
-    fade: 1500            # fade duration (ms) (Not more than 1500)
+    duration: 60000       # Duration (ms)
+    fade: 500             # fade duration (ms) (Not more than 1500)
     images:               # For personal use only. At your own risk if used for commercial purposes !!!
-      - /images/91.jpg
-      # - volantis-static/media/wallpaper/minimalist/2020/001.webp
-      # - volantis-static/media/wallpaper/minimalist/2020/002.webp
-      # - volantis-static/media/wallpaper/minimalist/2020/003.webp
-      # - volantis-static/media/wallpaper/minimalist/2020/004.webp
-      # - volantis-static/media/wallpaper/minimalist/2020/005.webp
+      - /images/covers/cover01.jpg
+      - /images/covers/cover02.jpg
+      - /images/covers/cover03.jpg
+      - /images/covers/cover04.jpg
+      - /images/covers/cover05.jpg
+      - /images/covers/cover06.jpg
+      - /images/covers/cover07.jpg
+      - /images/covers/cover08.jpg
+      - /images/covers/cover09.jpg
+      - /images/covers/cover10.jpg
 
   # 计数功能
   wordcount:
@@ -655,4 +687,17 @@ npm install hexo-renderer-pandoc
 npm install hexo-filter-mathjax
 
 sudo apt install pandoc
+```
+
+
+### 3. 网站页脚文字修改？
+> 进入 ./node_modules/hexo-theme-volantis/layout/_partial/footer.ejs
+
+```js
+// 删除相关 if/else 语句
+// custom footer 部分写入 <p> 标签
+<!-- Custom Files footer begin-->
+  <%- volantis_inject('footer') %>
+  <p style="font-size: .8125rem">本站采用 <a href="https://volantis.js.org/" target="_blank">Volantis</a> 主题设计</p>
+<!-- Custom Files footer end-->
 ```

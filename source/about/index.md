@@ -7,7 +7,7 @@ sidebar: [blogger, category, guide, tagcloud, webinfo]
 
 <div class="profile" style="display: flex; margin-left: 5%">
 <div class="img" style="height: auto; width: auto;">
-<img src="https://z1.ax1x.com/2023/10/25/piVuojJ.jpg" height="auto" width="210"/>
+<img src="/images/profile.jpg" height="auto" width="210"/>
 </div>
 <div class="text" style="margin-left: 5%;">
 <p style="font-weight: bold; font-size: 30px">Chen Shi</p>
