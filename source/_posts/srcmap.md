@@ -49,7 +49,7 @@ FAST' 2010
 
 ### 先前工作
 
-![](./fig01.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig01.png)
 
 先前的工作包括：单个冗余、Geared RAIDs、Caching Systems 以及 Write Offloading 等。
 
@@ -68,25 +68,25 @@ SRCMap 的创新点在于，作者考虑到服务器的虚拟化整合方案`（
 
 活跃数据集通常是总使用存储的一小部分
 
-![](./fig02.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig02.png)
 
 ### `观察结果 2`
 
 存储卷的 I/O 工作负载强度存在显著差异
 
-![](./fig03.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig03.png)
 
 ### `观察结果 3`
 
 超过 99% 的工作集，由一些“非常活跃”数据和“最近访问”数据组成
 
-![](./fig04.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig04.png)
 
 ### `观察结果 4`
 
 I/O 工作负载的读取空闲时间分布主要由小持续时间（通常小于5 min）主导
 
-![](./fig05.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig05.png)
 
 
 ## SRCMap 设计决策
@@ -116,7 +116,7 @@ SRCMap 运行在 torage Virtualization Manager 上，存储虚拟化管理器可
 
 ## SRCMap 架构
 
-![](./fig06.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig06.png)
 
 ### 组件
 #### `Load Monitor 负载监视器`
@@ -160,15 +160,15 @@ SRCMap 运行在 torage Virtualization Manager 上，存储虚拟化管理器可
 
 Replica Placement Alogorithm 副本放置算法的目标是如果活动磁盘管理器决定关闭 vdisk 的主 mdisk，则它需要能够找到至少一个承载其副本的活动目标 mdisk，并且保持顺序性 Ordering Property。`顺序性`指的是对于任意两个 vdisk $V_i$ 和 $V_j$，在 Active Disk Identification 的任意时间点 t，如果 $V_i$ 更需要一个目标副本，那么在同一时间点 t，$V_i$ 比 $V_j$ 更有可能在活跃磁盘中找到一个目标副本。副本放置算法包含以下几个步骤。首先是`“初始 vdisk 排序”`，基于它们的成本-收益权衡在 vdisks 之间创建一个排序的顺序。对于每个磁盘 $V_i$，计算它的主磁盘 $M_i$ 被关闭的概率 $P_i$：
 
-![](./fig07.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig07.png)
 
 其中 $w_k$ 是可调权重，$WS_i$ 是 $V_i$ 的工作集大小，$PPR_i$ 是 $V_i$ 的主 mdisk $M_i$ 的性能-功率比`（峰值 I/O 带宽与峰值功率之间的比率）`，$\rho_i$ 是 $V_i$ 的平均长期 I/O 工作强度`（以 IOPS 为单位）`，$M_i$ 是 $V_i$ 的工作集中 read miss 的次数，由其主 mdisk $M_i$ 的主轴数归一化`（常见的磁盘主轴数有单盘面和双盘面）`。而 $min$ 指的是所有 vdisks 上的最小值。这个概率公式的基本思想是，较小的工作负载更容易找到目标 mdisk，并且关闭耗电量较高的 mdisk 可以节省更多功耗；
 
-![](./fig08.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig08.png)
 
 第 2 步是`“二部图创建”`，创建一个二部图 G(V → M)，每个 vdisk 作为源节点 $V_i$，其主 mdisk 作为目标节点 $M_i$，边缘权重 e($V_i$, $M_j$) 表示将 $V_i$ 的副本放置在 $M_j$ 上的成本效益权衡，如图 5。二部图中的节点使用 $P_i$ 进行排序`（$P_i$ 较大的磁盘位于顶部）`，初始化每个边缘（$V_i$, $M_j$）（源-目标对）的边缘权重 $w_{i, j} = P_i$。刚开始阶段不对目标 mdisk 进行副本分配。之后副本放置算法迭代执行之后的两个步骤，直到目标 mdisk 上的所有可用 Replica space 都已分配，且在每次迭代中，只分配一个目标 mdisk 的 Replica space；第 3 步是`“源-目标映射”`，算法选取 Replica space 尚未分配的最顶层目标 mdisk $M_i$，并选择一组最高权重的边，该组边中源节点的组合副本大小填充 $M_i$ 中可用的 Replica space（例如，$V_1$ 和 $V_n$ 的工作集在图 5 中 $M_2$ 的副本空间中复制）。目标 mdisk 上的 Replica space 被填满后，目标 mdisk 标记为已分配。该过程总是优先考虑具有较大 $P_i$ 的源节点，当 mdisk 得到一个副本，它需要另一个副本的可能性就会降低，因此之后需要`“重新调整边缘权重”`，假设 vdisk $V_i$ 的工作集已经被复制到一组目标 mdisks 中，$T_i ＝ M_1, …, M_{least}$`（$M_{least}$ 是 $T_i$ 中 $P_i$ 最小的 mdisk）`。如果一组目标 mdisks 中的某个 mdisk 停止运行，那么有可能需要分配一个新的目标 mdisk。在活跃磁盘识别期间， $V_i$ 需要一个新目标 mdisk 的概率等于 $M_i$ 和 $M_{least}$ 都关闭的概率，为了保留排序性 Ordering Property，因此有以下式子：`（k 应该指的是新的目标 mdisk，而 j 指的是停止运行的目标 mdisk）`
 
-![](./fig09.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig09.png)
 
 重新计算了权重后，从源-目标映射步骤再开始迭代，直到所有副本都分配给了目标 mdisks。
 
@@ -176,11 +176,11 @@ Replica Placement Alogorithm 副本放置算法的目标是如果活动磁盘管
 
 目标是识别出活跃 mdisks 和活跃副本。首先是`“活跃 mdisk 选择”`，使用前一个间隔期`（指两次磁盘调度之间的时间间隔）`内 vdisk 的工作负载作为下一个间隔期内 vdisk 的预测工作负载。并将所有 vdisks 的预测工作负载之和作为预期聚合负载，使用此预期聚合负载来识别最小的一组 mdisks（按照 $P_i$ 的逆序排列），且这些 mdisks 的聚合带宽超过预期聚合负载；
 
-![](./fig10.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig10.png)
 
 第 2 步是`“活跃副本识别”`，为每个非活跃 mdisk 在一个活跃 mdisk 上标识一个副本，以处理从非活跃 mdisk 重定向的工作负载，并且使具有较大 $P_i$ 的主 mdisks 处于关闭，并将其工作负载重定向到具有较小概率 $P_i$ 的少量 mdisks，因此为每个非活跃主 mdisk 在其中一个活跃 mdisk 上，识别一个活跃副本。Replica Placement 过程为可能被停转概率更大的 vdisk 创建的副本，且具有较大概率 $P_i$ 的主 mdisk 可能会在较长时间内处于关闭状态，因此首先让较小概率 $P_i$ 的非活跃主 mdisk 寻找一个活跃副本，之后较大概率 $P_i$ 的非活跃主 mdisk 的副本则位于具有较小概率 $P_i$ 的活跃 mdisks 上。如图 6 中，vdisk $V_k$ 有第一选择承载其 replica 的活跃mdisk $M_{k+1}$，具有较大概率 $P_i$ 的非活跃 mdisk 被映射到具有较小概率 $P_i$ 的活跃 mdisk上（$V_1$ 被映射到 $M_n$）。由于具有最小概率 $P_i$ 的 mdisk 很可能一直保持活动状态，所以非活跃 mdisk 几乎不需要频繁切换活跃副本；
 
-![](./fig11.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig11.png)
 
 最后就是进行`“迭代”`，若成功找到所有非活跃 mdisks 的活跃副本，则算法终止；否则，活跃 mdisk 数量加 1，算法重复执行活跃副本识别步骤。
 
@@ -190,11 +190,11 @@ Replica Placement Alogorithm 副本放置算法的目标是如果活动磁盘管
 
 作者使用了两组实验进行评估，一个使用基于 SRCMap 的存储虚拟化管理器原型，另一个使用植入原型的能量模拟器。使用的工作负载包括对8个独立数据卷的 I/O 请求，每个数据卷映射到一个独立的磁盘驱动器`（如表 3，包括平均工作负载能力和最大工作负载能力）`。Testbed 是一个单机 Intel Pentium 4 HT 3GHz，内存 1 G，通过 SATA-II A 和 B 连接 8 个磁盘`（如图 8，展示了整个实验设置）`；测试的 Baseline 包括：（Prototype 下）没有进行任何合并操作且所有磁盘一直处于活动状态；（Simulator 下）是 Caching-1、Caching-2、Replication 这三个对比方案。所有实验的配置参数包括：Consolidation 间隔设置为 2h，以保证磁盘可靠性；非活跃磁盘，使用了 2min 超时时间，超过 2min 会被关闭；在一个 Consolidation 间隔内，活跃 mdisk 保持持续活动；工作集和副本是基于三周的工作负载数据创建，因此为了简洁，作者报告了随后 24 小时的持续时间结果。作者使用 5 个 IOPS 估算等级（L0 到 L4），以模拟不同负载因子下的 Testbeds ，表 4（a）中提供每个卷在不同登记下的可持续 IOPS，活跃 mdisk 数量不同时存储系统功耗在表 4（b）中呈现。原型测试根据真实的存储系统运行评估 SRCMap，通过 Reporting 模块实现对功耗和 I/O 性能的影响的实际测量；模拟器测试能够在模拟时间内进行较长时间的实验，可以模拟各类型 storage testbeds 以研究在各种负载条件下的性能。
 
-![](./fig12.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig12.png)
 
 ### Prototype结果
 
-![](./fig13.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig13.png)
 
 图 9 是 SRCMap 的能耗节省情况。使用 L0 级 IOPS，平均每次能将 4 个左右 mdisks 停转，可以节能约 35%；使用 L3 级 IOPS，能将 7 个 mdisks 停转，节能约 60%。功耗的波动与计划和非计划`（由于读取未命中）`的 mdisks 激活有关，这些情况很少发生。
 
@@ -202,7 +202,7 @@ Replica Placement Alogorithm 副本放置算法的目标是如果活动磁盘管
 
 ### Simulator 结果
 
-![](./fig14.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig14.png)
 
 首先是能耗的对比实验。实验组是 SRCMap 的 L0 级 IOPS 和三个备选方案`（Caching-1、Caching-2 和 Replication）`。其中，Caching-1 是使用 1 个额外的物理卷作为缓存，如果观察到的总负载小于缓存的 IOPS，则将工作负载重定向到缓存，否则使用原始 mdisk；Caching-2 使用 2 个缓存；Replication 则是创建副本对，其中一卷上的所有数据在另一卷上进行复制。如果总负载低于其中一个卷的 IOPS，则只保持一卷处于活跃状态，否则两个都保持活跃状态。图 11 是能耗对比。SRCMap 如果发生读取不命中，会产生瞬时功耗峰值，需要激活额外的 mdisk。每个方案在不同整合间隔上表现出不同程度的能源比例。SRCMap（L0）在所有间隔上均消耗了最少的功耗，且其功耗与负载成比例。Replication 也展示出较好的能源比例性，但平均功耗较高。Caching-1，2 的能源比例最低，只有两个有效的能源水平可供使用。在每个整合间隔中，SRCMap 重新映射`（即更改活跃副本）`的 mdisks 数量最少。作者还测试了 Caching-1、Caching-2 和 Replication 分别使用了额外的存储空间 12.5%、25% 和 100%，结合图 13 的空间开销情况，SRCMap 只需额外的 10% 存储空间就能实现几乎所有的节能。图 12 是 SRCMap 在 L3 级 IOPS 下的功耗统计，SRCMap 将工作负载整合在 D2 和 D3 上，可以看出各个 disk 的启动次数都不超过 6 次，因此不会牺牲磁盘的可靠性。图 14 是作者针对 5 个 IOPS 估计水平 L0 到 L4 级，在每个 2 小时的整合间隔内评估了能耗情况。负载因子`（负载因子是观察到的平均 IOPS 负载与所有卷的预估 IOPS（负载估计水平）之间的百分比关系）`是一个连续变量，但是 SRCMap 的能耗是离散的。SRCMap 每次只能改变一个 disk，因此 SRCMa p中不同的功耗水平之间的差异大约是一个物理卷的差异。因此 SRCMap 在具有 N 个 mdisks 的系统中能够实现接近 N 级的能源比例。
 

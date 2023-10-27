@@ -701,3 +701,17 @@ sudo apt install pandoc
   <p style="font-size: .8125rem">本站采用 <a href="https://volantis.js.org/" target="_blank">Volantis</a> 主题设计</p>
 <!-- Custom Files footer end-->
 ```
+
+
+### 4. CDN 加速？
+> 使用 jsdelivr CDN 加速访问
+
+1. 创建存放静态资源的仓库（CSBlog）
+2. 创建 Release
+3. 引用链接修改为
+   ```yml
+   https://cdn.jsdelivr.net/gh/<Username>/<Repo>/<文件路径>
+
+   # 例子
+   https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig02.png
+   ```

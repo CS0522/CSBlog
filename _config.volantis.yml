@@ -89,7 +89,7 @@ article:
     meta_library:
       author:
         # 个人头像
-        avatar: /images/userphoto/userphoto02.png  # volantis-static/media/org.volantis/blog/favicon/apple-touch-icon.png
+        avatar: https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/images/userphoto/userphoto02.png  # volantis-static/media/org.volantis/blog/favicon/apple-touch-icon.png
         name: Chen Shi
         url: https://github.com/CS0522/
       date:
@@ -103,7 +103,7 @@ article:
       # 文章分类
       category:
         icon: fa-solid fa-folder-open
-      # TODO 文章浏览计数
+      # 文章浏览计数
       counter:
         icon: fa-solid fa-eye
         unit: '次浏览'
@@ -199,7 +199,7 @@ sidebar:
       class: blogger
       display: [desktop, mobile] # [desktop, mobile]
       # 个人头像
-      avatar: /images/userphoto/userphoto02_scaled.png  # https://gcore.jsdelivr.net/gh/xaoxuu/cdn-assets/avatar/avatar.png
+      avatar: https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/images/userphoto/userphoto02_scaled.png  # https://gcore.jsdelivr.net/gh/xaoxuu/cdn-assets/avatar/avatar.png
       title: Chen Shi
       subtitle: <p>DLUT DRISE</p><p>2024届本科生</p>
       jinrishici: false # Poetry Today. You can set a string, and it will be displayed when loading fails.
@@ -305,16 +305,16 @@ plugins:
     duration: 60000       # Duration (ms)
     fade: 500             # fade duration (ms) (Not more than 1500)
     images:               # For personal use only. At your own risk if used for commercial purposes !!!
-      - /images/covers/cover01.jpg
-      - /images/covers/cover02.jpg
-      - /images/covers/cover03.jpg
-      - /images/covers/cover04.jpg
-      - /images/covers/cover05.jpg
-      - /images/covers/cover06.jpg
-      - /images/covers/cover07.jpg
-      - /images/covers/cover08.jpg
-      - /images/covers/cover09.jpg
-      - /images/covers/cover10.jpg
+      - https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/images/covers/cover01.jpg
+      - https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/images/covers/cover02.jpg
+      - https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/images/covers/cover03.jpg
+      - https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/images/covers/cover04.jpg
+      - https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/images/covers/cover05.jpg
+      - https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/images/covers/cover06.jpg
+      - https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/images/covers/cover07.jpg
+      - https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/images/covers/cover08.jpg
+      - https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/images/covers/cover09.jpg
+      - https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/images/covers/cover10.jpg
       # - volantis-static/media/wallpaper/minimalist/2020/001.webp
       # - volantis-static/media/wallpaper/minimalist/2020/002.webp
       # - volantis-static/media/wallpaper/minimalist/2020/003.webp
