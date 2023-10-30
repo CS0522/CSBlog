@@ -18,10 +18,10 @@ Python 仿真库 SimPy，安装、结构和基本概念
 
 <!-- more -->
 
-> 学习笔记参考[]()  
-> 
+> 学习笔记参考[SimPy 文档](https://simpy.readthedocs.io/en/latest/)   
 
 ## SimPy 简介
+
 > "SimPy 是基于过程的`离散事件`的标准 Python 模拟框架"  
 > [SimPy 文档](https://simpy.readthedocs.io/en/latest/)  
 
@@ -175,5 +175,9 @@ SimPy 学习
 * {% post_link simpy-learning-01 %}  
 
 * {% post_link simpy-learning-02 %}  
-   
+
 * {% post_link simpy-learning-03 %}
+
+* {% post_link simpy-learning-04 %}
+
+* {% post_link simpy-learning-05 %}
