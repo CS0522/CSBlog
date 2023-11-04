@@ -18,7 +18,7 @@ timezone: 'Asia/Shanghai'
 
 # URL
 ## Set your site url here. For example, if you use GitHub Page, set url as 'https://username.github.io/project'
-url: https://CS0522.gitee.io/
+url: https://CS0522.github.io/
 permalink: :category/:title/
 permalink_defaults:
   lang: zh-CN
@@ -140,6 +140,6 @@ deploy:
   - type: git
     repository: git@github.com:CS0522/CS0522.github.io.git
     branch: master
-  - type: git
-    repository: git@gitee.com:CS0522/CS0522.git
-    branch: master
+  # - type: git
+  #   repository: git@gitee.com:CS0522/CS0522.git
+  #   branch: master

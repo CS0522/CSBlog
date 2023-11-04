@@ -97,3 +97,5 @@ SimPy 学习
 * {% post_link simpy-learning-04 %}
 
 * {% post_link simpy-learning-05 %}
+
+* {% post_link simpy-learning-06 %}
