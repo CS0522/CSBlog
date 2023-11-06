@@ -201,7 +201,7 @@ sidebar:
       # 个人头像
       avatar: https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/images/userphoto/userphoto02_scaled.png  # https://gcore.jsdelivr.net/gh/xaoxuu/cdn-assets/avatar/avatar.png
       title: Chen Shi
-      subtitle: <p>DLUT DRISE</p><p>2024届本科生</p>
+      subtitle: <p>DLUT DRISE</p><p>2024 届本科生</p>
       jinrishici: false # Poetry Today. You can set a string, and it will be displayed when loading fails.
       social:
         - icon: fa-solid fa-envelope
