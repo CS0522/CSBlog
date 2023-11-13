@@ -1,5 +1,5 @@
 ---
-title: DiskSim 学习（二）：简单使用
+title: 【学习笔记】DiskSim 学习（二）：简单使用
 tags:
   - DiskSim
   - Linux
@@ -50,7 +50,7 @@ Disksim 本身支持的 trace 类型是有限的，如果不支持实验使用�
 
 * 在 disksim_global.h 中预定义 trace 类型常量
 * 在 disksim_iotrace.c 文件的 iotrace_set_format 函数中添加相应的 if 判断语句
-* 在 disksim_iotrace.c 文件中仿照 iotrace_ascii_get_ioreq_event 函数添加 iotrace_spc_get_ioreq_event 函数处理相应的 trace 文件。如果trace文件中包含一定的头信息，则需要在 disksim_iotrace.c 文件中添加 iotrace_xxxx_initialize_file 函数，并在 iotrace_initialize_file 函数中调用。
+* 在 disksim_iotrace.c 文件中仿照 iotrace_ascii_get_ioreq_event 函数添加 iotrace_spc_get_ioreq_event 函数处理相应的 trace 文件。如果 trace 文件中包含一定的头信息，则需要在 disksim_iotrace.c 文件中添加 iotrace_xxxx_initialize_file 函数，并在 iotrace_initialize_file 函数中调用。
 
 具体方法参照官方手册。后续文章继续学习。
 

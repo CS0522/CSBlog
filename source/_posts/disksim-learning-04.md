@@ -1,5 +1,5 @@
 ---
-title: DiskSim 学习（四）：参数文件
+title: 【学习笔记】DiskSim 学习（四）：参数文件
 tags:
   - DiskSim
   - Linux
@@ -14,7 +14,7 @@ cover: false
 date: 2023-11-08 08:17:11
 ---
 
-DiskSim 的 `.parv` 参数文件
+DiskSim 的 .parv 参数文件
 
 <!-- more -->
 
@@ -34,7 +34,13 @@ DiskSim 使用 libparam 输入参数文件。在参数文件中有三种内容�
 在一个典型的配置中，接着还会再定义一定的总线（bus）、控制器（controller）、和输入输出驱动（iodriver），
 然后定义或引用一些存储设备的说明，之后实例化，最后模拟存储仿真的拓扑结构规范定义这些组件之间的互连。
 
-## atlas_III.parv 参数文件
+磁盘阵列的数据组织是在 `logorg` 块中描述的。每一个请求都必须属于一个 `logorg`，所以至少有一个 `logorg` 块被定义。
+
+设备的 `Rotational syncrhonization` 可以选择性的在 `syncset` 块中定义。
+
+`adjusting the time scale` 和 `remapping requests from a trace` 可以在 `iosim` 块中定义。
+
+## synthraid5.parv 参数文件
 
 主要包括以下几个部分：
 
@@ -46,7 +52,8 @@ DiskSim 使用 libparam 输入参数文件。在参数文件中有三种内容�
   * controllers
   * storage devices
 * 实例化
-* 系统拓扑结构
+* 拓扑结构
+* RAID 磁盘阵列
 * 设置 workload
 
 ### Global block
@@ -72,56 +79,58 @@ Stat definition file = statdefs
 
 ```python
 disksim_stats Stats {
- iodriver stats = disksim_iodriver_stats {
-  Print driver size stats = 1,
-  Print driver locality stats = 0,
-  Print driver blocking stats = 0,
-  Print driver interference stats = 0,
-  Print driver queue stats = 1,
-  Print driver crit stats = 1,
-  Print driver idle stats = 1,
-  Print driver intarr stats = 1,
-  Print driver streak stats = 1,
-  Print driver stamp stats = 1,
-  Print driver per-device stats = 1 },
- bus stats = disksim_bus_stats {
-  Print bus idle stats = 1,
-  Print bus arbwait stats = 1 },
- ctlr stats = disksim_ctlr_stats {
-  Print controller cache stats = 1,
-  Print controller size stats = 1,
-  Print controller locality stats = 1,
-  Print controller blocking stats = 1,
-  Print controller interference stats = 1,
-  Print controller queue stats = 1,
-  Print controller crit stats = 1,
-  Print controller idle stats = 1,
-  Print controller intarr stats = 1,
-  Print controller streak stats = 1,
-  Print controller stamp stats = 1,
-  Print controller per-device stats = 1 }, 
- device stats = disksim_device_stats {
-  Print device queue stats = 0,
-  Print device crit stats = 0,
-  Print device idle stats = 0,
-  Print device intarr stats = 0,
-  Print device size stats = 0,
-  Print device seek stats = 1,
-  Print device latency stats = 1,
-  Print device xfer stats = 1,
-  Print device acctime stats = 1,
-  Print device interfere stats = 0,
-  Print device buffer stats = 1 },
- process flow stats = disksim_pf_stats {
-  Print per-process stats =  1,
-  Print per-CPU stats =  1,
-  Print all interrupt stats =  1,
-  Print sleep stats =  1
- }
+iodriver stats = disksim_iodriver_stats {
+ Print driver size stats = 1,
+ Print driver locality stats = 1,
+ Print driver blocking stats = 1,
+ Print driver interference stats = 1,
+ Print driver queue stats = 1,
+ Print driver crit stats = 1,
+ Print driver idle stats = 1,
+ Print driver intarr stats = 1,
+ Print driver streak stats = 1,
+ Print driver stamp stats = 1,
+ Print driver per-device stats = 1 },
+bus stats = disksim_bus_stats {
+ Print bus idle stats = 1,
+ Print bus arbwait stats = 1 },
+ctlr stats = disksim_ctlr_stats {
+ Print controller cache stats = 1,
+ Print controller size stats = 1,
+ Print controller locality stats = 1,
+ Print controller blocking stats = 1,
+ Print controller interference stats = 1,
+ Print controller queue stats = 1,
+ Print controller crit stats = 1,
+ Print controller idle stats = 1,
+ Print controller intarr stats = 1,
+ Print controller streak stats = 1,
+ Print controller stamp stats = 1,
+ Print controller per-device stats = 1 },
+device stats = disksim_device_stats {
+ Print device queue stats = 1, 
+ Print device crit stats = 1,
+ Print device idle stats = 1,
+ Print device intarr stats = 1,
+ Print device size stats = 1,
+ Print device seek stats = 1,
+ Print device latency stats = 1,
+ Print device xfer stats = 1,
+ Print device acctime stats = 1,
+ Print device interfere stats = 1,
+ Print device buffer stats = 1 },
+process flow stats = disksim_pf_stats {
+ Print per-process stats =  1,
+ Print per-CPU stats =  1,
+ Print all interrupt stats =  1,
+ Print sleep stats =  1
+}
 } # end of stats block
 ```
 
 ### 具体设备参数设定
+
+> 注：以下设备参数取自 `atlas_III.parv` 参数文件
 
 ```python
 # Device Driver
@@ -185,9 +194,9 @@ disksim_ctlr CTLR0 {
 ```
 
 ```python
-# QUANTUM_QM39100TD-SW
+# HP_C3323A
 # source 类似于预处理指令
-source atlas_III.diskspecs
+source hp_c3323a.diskspecs
 ```
 
 
@@ -198,11 +207,12 @@ source atlas_III.diskspecs
 ```python
 # component instantiation
 instantiate [ statfoo ] as Stats
-instantiate [ bus0 ] as  BUS0
-instantiate [ bus1 ] as  BUS1
-instantiate [ disk0 ] as  QUANTUM_QM39100TD-SW
-instantiate [ driver0 ] as  DRIVER0
-instantiate [ ctlr0 ] as  CTLR0
+instantiate [ ctlr0 .. ctlr8 ] as CTLR0
+instantiate [ bus0 ] as BUS0
+instantiate [ disk0 .. disk8 ] as HP_C3323A
+instantiate [ driver0 ] as DRIVER0
+instantiate [ bus1 .. bus9 ] as BUS1
+# end of component instantiation
 ```
 
 ### 拓扑结构
@@ -210,33 +220,116 @@ instantiate [ ctlr0 ] as  CTLR0
 ```python
 # system topology
 topology disksim_iodriver driver0 [
-   disksim_bus bus0 [ 
-      disksim_ctlr ctlr0 [ 
-         disksim_bus bus1 [ 
-            disksim_disk disk0 []
-         ] # end of bus1
-      ] # end of ctlr0
-   ] # end of bus0
-] # end of system topology 
+     disksim_bus bus0 [ 
+          disksim_ctlr ctlr0 [ 
+               disksim_bus bus1 [ 
+                    disksim_disk disk0 []
+                    # end of bus1
+               ]
+               # end of ctlr0
+          ],
+          disksim_ctlr ctlr1 [ 
+               disksim_bus bus2 [ 
+                    disksim_disk disk1 []
+                    # end of bus2
+               ]
+               # end of ctlr1
+          ],
+          disksim_ctlr ctlr2 [ 
+               disksim_bus bus3 [ 
+                    disksim_disk disk2 []
+                    # end of bus3
+               ]
+               # end of ctlr2
+          ],
+          disksim_ctlr ctlr3 [ 
+               disksim_bus bus4 [ 
+                    disksim_disk disk3 []
+                    # end of bus4
+               ]
+               # end of ctlr3
+          ],
+          disksim_ctlr ctlr4 [ 
+               disksim_bus bus5 [ 
+                    disksim_disk disk4 []
+                    # end of bus5
+               ]
+               # end of ctlr4
+          ],
+          disksim_ctlr ctlr5 [ 
+               disksim_bus bus6 [ 
+                    disksim_disk disk5 []
+                    # end of bus6
+               ]
+               # end of ctlr5
+          ],
+          disksim_ctlr ctlr6 [ 
+               disksim_bus bus7 [ 
+                    disksim_disk disk6 []
+                    # end of bus7
+               ]
+               # end of ctlr6
+          ],
+          disksim_ctlr ctlr7 [ 
+               disksim_bus bus8 [ 
+                    disksim_disk disk7 []
+                    # end of bus8
+               ]
+               # end of ctlr7
+          ],
+          disksim_ctlr ctlr8 [ 
+               disksim_bus bus9 [ 
+                    disksim_disk disk8 []
+                    # end of bus9
+               ]
+               # end of ctlr8
+          ]
+          # end of bus0
+     ]
+     # end of system topology
+]
+```
 
-# no syncsets
+### RAID 磁盘阵列
 
+```python
+disksim_syncset sync0 { 
+   devices = [ disk0 .. disk8 ] 
+}
+
+# 重要！！！这里应该涉及到磁盘阵列的数据分布
+
+# Disk Array Data Organizations（磁盘阵列逻辑数据组织形式）
+# 每一种逻辑结构都可以在 logory 块中配置
+# RAID-5
 disksim_logorg org0 {
-   Addressing mode = Parts,
-   Distribution scheme = Asis,
-   Redundancy scheme = Noredun,
-   devices = [ disk0 ],
-   Stripe unit  =  17783250,
-   Synch writes for safety =  0,
-   Number of copies =  2,
-   Copy choice on read =  6,
-   RMW vs. reconstruct =  0.5,
-   Parity stripe unit =  64,
-   Parity rotation type =  1,
-   Time stamp interval =  0.000000,
-   Time stamp start time =  60000.000000,
-   Time stamp stop time =  10000000000.000000,
-   Time stamp file name =  stamps
+    # 逻辑数据组织的编址方式（值为：Array（编成一个统一逻辑设备）或 Parts）
+    Addressing mode = Array,
+    # 数据分布策略，体现负载均衡能力（值为：Striped，Random，N.B. 或 Ideal）
+    Distribution scheme = Striped,
+    # 冗余方案（值为：Noredun，Shadowed，Parity_disk 或 Parity_rotated）
+    Redundancy scheme = Parity_rotated,
+    # 当前逻辑组织中包含的设备名称列表
+    devices = [ disk0 .. disk8 ],
+    # stripe 单元的大小
+    Stripe unit  =  64,
+    Synch writes for safety =  0,
+    # 每个数据磁盘的备份数（仅当 Redundancy scheme = shadowed 时才有效）
+    Number of copies =  2,
+    # 哪个副本负责响应（仅当 Redundancy scheme = shadowed 时才有效）
+    Copy choice on read =  6,
+    RMW vs. reconstruct =  0.5,
+    # stripe 单元的大小（仅当 Redundancy scheme = Parity_rotated 时才有效）
+    Parity stripe unit =  64,
+     # parity 在磁盘中旋转的方式（仅当 Redundancy scheme = Parity_rotated 时才有效）
+    Parity rotation type =  1,
+    # time stamps 之间的间隔
+    Time stamp interval =  0.000000,
+     # 第一个 time stamp 的模拟时间（相对于模拟开始的时间）
+    Time stamp start time =  60000.000000,
+     # 最后一个 time stamp 的模拟时间（相对于模拟开始的时间）
+    Time stamp stop time =  10000000000.000000,
+    Time stamp file name =  stamps
 } # end of logorg org0 spec
 ```
 
@@ -248,97 +341,97 @@ disksim_logorg org0 {
 
 ```python
 disksim_pf Proc {
-   Number of processors =  1,
+   Number of processors =  5,
    Process-Flow Time Scale =  1.0
 } # end of process flow spec
 
 disksim_synthio Synthio {
    Number of I/O requests to generate =  10000,
-   Maximum time of trace generated  = 1000.0,
-   System call/return with each request = 0,
+   Maximum time of trace generated  =  1000.0,
+   System call/return with each request =  0,
    Think time from call to request =  0.0,
    Think time from request to return =  0.0,
    Generators = [
-   disksim_synthgen { # generator 0 
-      Storage capacity per device  = 17783250,
-      devices = [ disk0 ], 
-      Blocking factor =  8,
-      Probability of sequential access =  0.0,
-      Probability of local access =  0.0,
-      Probability of read access =  0.66,
-      Probability of time-critical request = 1.0,
-      Probability of time-limited request = 0.0,
-      Time-limited think times  = [ normal, 30.0, 100.0  ],
-      General inter-arrival times  = [ exponential, 0.0, 0.0  ],
-      Sequential inter-arrival times  = [ normal, 0.0, 0.0  ],
-      Local inter-arrival times  = [ exponential, 0.0, 0.0  ],
-      Local distances  = [ normal, 0.0, 40000.0  ],
-      Sizes  = [ exponential, 0.0, 8.0  ]
-   }, # end of generator 0 
-   disksim_synthgen { # generator 1
-      Storage capacity per device  = 17783250,
-      devices = [ disk0 ], 
-      Blocking factor =  8,
-      Probability of sequential access =  0.0,
-      Probability of local access =  0.0,
-      Probability of read access =  0.66,
-      Probability of time-critical request = 1.0,
-      Probability of time-limited request = 0.0,
-      Time-limited think times  = [ normal, 30.0, 100.0  ],
-      General inter-arrival times  = [ exponential, 0.0, 0.0  ],
-      Sequential inter-arrival times  = [ normal, 0.0, 0.0  ],
-      Local inter-arrival times  = [ exponential, 0.0, 0.0  ],
-      Local distances  = [ normal, 0.0, 40000.0  ],
-      Sizes  = [ exponential, 0.0, 8.0  ]
-   }, # end of generator 1 
-   disksim_synthgen { # generator 2 
-      Storage capacity per device  = 17783250,
-      devices = [ disk0 ], 
-      Blocking factor =  8,
-      Probability of sequential access =  0.0,
-      Probability of local access =  0.0,
-      Probability of read access =  0.66,
-      Probability of time-critical request = 1.0,
-      Probability of time-limited request = 0.0,
-      Time-limited think times  = [ normal, 30.0, 100.0  ],
-      General inter-arrival times  = [ exponential, 0.0, 0.0  ],
-      Sequential inter-arrival times  = [ normal, 0.0, 0.0  ],
-      Local inter-arrival times  = [ exponential, 0.0, 0.0  ],
-      Local distances  = [ normal, 0.0, 40000.0  ],
-      Sizes  = [ exponential, 0.0, 8.0  ]
-   }, # end of generator 2 
-   disksim_synthgen { # generator 3 
-      Storage capacity per device  = 17783250,
-      devices = [ disk0 ], 
-      Blocking factor =  8,
-      Probability of sequential access =  0.0,
-      Probability of local access =  0.0,
-      Probability of read access =  0.66,
-      Probability of time-critical request = 1.0,
-      Probability of time-limited request = 0.0,
-      Time-limited think times  = [ normal, 30.0, 100.0  ],
-      General inter-arrival times  = [ exponential, 0.0, 0.0  ],
-      Sequential inter-arrival times  = [ normal, 0.0, 0.0  ],
-      Local inter-arrival times  = [ exponential, 0.0, 0.0  ],
-      Local distances  = [ normal, 0.0, 40000.0  ],
-      Sizes  = [ exponential, 0.0, 8.0  ]
-   }, # end of generator 3 
-   disksim_synthgen { # generator 4 
-      Storage capacity per device  = 17783250,
-      devices = [ disk0 ], 
-      Blocking factor =  8,
-      Probability of sequential access =  0.0,
-      Probability of local access =  0.0,
-      Probability of read access =  0.66,
-      Probability of time-critical request = 1.0,
-      Probability of time-limited request = 0.0,
-      Time-limited think times  = [ normal, 30.0, 100.0  ],
-      General inter-arrival times  = [ exponential, 0.0, 0.0  ],
-      Sequential inter-arrival times  = [ normal, 0.0, 0.0  ],
-      Local inter-arrival times  = [ exponential, 0.0, 0.0  ],
-      Local distances  = [ normal, 0.0, 40000.0  ],
-      Sizes  = [ exponential, 0.0, 8.0  ]
-   } # end of generator 4 
+     disksim_synthgen { # generator 0 
+       Storage capacity per device  =  16448064,
+       devices = [ org0 ], 
+       Blocking factor =  8,
+       Probability of sequential access =  0.2,
+       Probability of local access =  0.3,
+       Probability of read access =  0.66,
+       Probability of time-critical request =  0.1,
+       Probability of time-limited request =  0.3,
+       Time-limited think times  = [ normal, 30.0, 100.0  ],
+       General inter-arrival times  = [ exponential, 0.0, 10.0  ],
+       Sequential inter-arrival times  = [ exponential, 0.0, 10.0  ],
+       Local inter-arrival times  = [ exponential, 0.0, 10.0  ],
+       Local distances  = [ normal, 0.0, 40000.0  ],
+       Sizes  = [ exponential, 0.0, 8.0  ]
+     }, # end of generator 0 
+     disksim_synthgen { # generator 0 
+       Storage capacity per device  =  16448064,
+       devices = [ org0 ], 
+       Blocking factor =  8,
+       Probability of sequential access =  0.2,
+       Probability of local access =  0.3,
+       Probability of read access =  0.66,
+       Probability of time-critical request =  0.1,
+       Probability of time-limited request =  0.3,
+       Time-limited think times  = [ normal, 30.0, 100.0  ],
+       General inter-arrival times  = [ exponential, 0.0, 10.0  ],
+       Sequential inter-arrival times  = [ exponential, 0.0, 10.0  ],
+       Local inter-arrival times  = [ exponential, 0.0, 10.0  ],
+       Local distances  = [ normal, 0.0, 40000.0  ],
+       Sizes  = [ exponential, 0.0, 8.0  ]
+     }, # end of generator 0 
+     disksim_synthgen { # generator 0 
+       Storage capacity per device  =  16448064,
+       devices = [ org0 ], 
+       Blocking factor =  8,
+       Probability of sequential access =  0.2,
+       Probability of local access =  0.3,
+       Probability of read access =  0.66,
+       Probability of time-critical request =  0.1,
+       Probability of time-limited request =  0.3,
+       Time-limited think times  = [ normal, 30.0, 100.0  ],
+       General inter-arrival times  = [ exponential, 0.0, 10.0  ],
+       Sequential inter-arrival times  = [ exponential, 0.0, 10.0  ],
+       Local inter-arrival times  = [ exponential, 0.0, 10.0  ],
+       Local distances  = [ normal, 0.0, 40000.0  ],
+       Sizes  = [ exponential, 0.0, 8.0  ]
+     }, # end of generator 0 
+     disksim_synthgen { # generator 0 
+       Storage capacity per device  =  16448064,
+       devices = [ org0 ], 
+       Blocking factor =  8,
+       Probability of sequential access =  0.2,
+       Probability of local access =  0.3,
+       Probability of read access =  0.66,
+       Probability of time-critical request =  0.1,
+       Probability of time-limited request =  0.3,
+       Time-limited think times  = [ normal, 30.0, 100.0  ],
+       General inter-arrival times  = [ exponential, 0.0, 10.0  ],
+       Sequential inter-arrival times  = [ exponential, 0.0, 10.0  ],
+       Local inter-arrival times  = [ exponential, 0.0, 10.0  ],
+       Local distances  = [ normal, 0.0, 40000.0  ],
+       Sizes  = [ exponential, 0.0, 8.0  ]
+     }, # end of generator 0 
+     disksim_synthgen { # generator 0 
+       Storage capacity per device  =  16448064,
+       devices = [ org0 ], 
+       Blocking factor =  8,
+       Probability of sequential access =  0.2,
+       Probability of local access =  0.3,
+       Probability of read access =  0.66,
+       Probability of time-critical request =  0.1,
+       Probability of time-limited request =  0.3,
+       Time-limited think times  = [ normal, 30.0, 100.0  ],
+       General inter-arrival times  = [ exponential, 0.0, 10.0  ],
+       Sequential inter-arrival times  = [ exponential, 0.0, 10.0  ],
+       Local inter-arrival times  = [ exponential, 0.0, 10.0  ],
+       Local distances  = [ normal, 0.0, 40000.0  ],
+       Sizes  = [ exponential, 0.0, 8.0  ]
+     } # end of generator 0 
    ] # end of generator list 
 } # end of synthetic workload spec
 ```
