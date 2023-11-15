@@ -715,3 +715,12 @@ sudo apt install pandoc
    # 例子
    https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig02.png
    ```
+
+
+### 5. 百度、谷歌、Bing 网站收录？
+
+参考：[Hexo - SEO](https://ithelp.ithome.com.tw/articles/10249885?)、[Gitee Pages 百度收录](https://blog.csdn.net/Davidietop/article/details/123717899)
+
+百度收录网址：[https://ziyuan.baidu.com/site/index#/](https://ziyuan.baidu.com/site/index#/)
+Bing 收录网址：[https://www.bing.com/webmasters](https://www.bing.com/webmasters)
+谷歌收录网址：[https://search.google.com/search-console](https://search.google.com/search-console)
