@@ -176,6 +176,25 @@ date: 2023-10-22 18:01:13
   ```
   * --allow-unrelated-histories 参数会允许合并无关历史，当远程版本远高于本地版本时，可能需要 
 
+### Fork后本地项目同步他人更新
+  ```bash
+  ### 添加上游仓库
+  git remote add upstream git@github.com:Chtho1ly/WADG_ANN.git
+
+  ### 拉取最新更改
+  git fetch upstream
+
+  ### 切换分支并合并
+  git checkout master
+  git merge upstream/master
+
+  ### 推送到自己的远程仓库
+  git push -u origin master
+  ```
+
+
+
+
 ## Git可能会出现的问题
 ### 鉴权失败  
   用户名和密码的登录方式失效，需要到 Dev Settings 设置 Token.

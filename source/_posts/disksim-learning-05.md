@@ -61,8 +61,8 @@ DiskSim 可以模拟各种 logical organization，包括 striping 和各种 RAID
 
 * `Noredun`：不采用冗余
 * `Shadowed`：维护每个数据磁盘的一个或多个副本
-* `Parity disk`：维护一个奇偶校验磁盘以保护其他组织成员的数据
-* `Parity rotated`：一个磁盘的数据（分布在所有磁盘上）专用于保存奇偶校验信息，以保护 N 磁盘组织中其他 N-1 个磁盘的信息
+* `Parity disk`：其中一个物理磁盘包含根据其他磁盘的内容计算的奇偶校验信息
+* `Parity rotated`：一个磁盘容量大小（分布在所有磁盘上），专用于保存奇偶校验信息，以保护 N 磁盘组织中其他 N-1 个磁盘的信息
 
 ### Stripe unit
 
@@ -70,11 +70,11 @@ DiskSim 可以模拟各种 logical organization，包括 striping 和各种 RAID
 
 ### Parity stripe unit
 
-这指定用于奇偶校验旋转冗余方案的条带单元大小。对于其他方案，此参数将被忽略。奇偶校验条带单元大小不必等于条带单元的大小，但其中一个必须是另一个的倍数。
+指定用于奇偶校验旋转冗余方案的条带单元大小。对于其他方案，此参数将被忽略。奇偶校验条带单元大小不必等于条带单元的大小，但其中一个必须是另一个的倍数。
 
 ### Parity rotation type
 
-这指定如何在逻辑组织的磁盘之间轮换奇偶校验。4 个选项：1 - 左对称、2 - 左不对称、3 - 右不对称、4 - 右对称。除非选择了奇偶校验旋转冗余，否则此参数将被忽略。
+指定如何在逻辑组织的磁盘之间轮换奇偶校验。4 个选项：1 - 左对称、2 - 左不对称、3 - 右不对称、4 - 右对称。除非选择了奇偶校验旋转冗余，否则此参数将被忽略。
 
 ## parv 参数文件中 RAID 参数
 
@@ -191,14 +191,26 @@ int logorg_distn(logorg *result, char *s) {
 </details>
 
 
-### 开始运行到发请求在 RAID 上重新映射流程
+### 开始运行到发请求至 RAID 流程
+
+初始化流程：
+
+1. `disksim_main.c`: disksim_setup_disksim(argc, argv);
+2. `disksim.c`: initialize();
+3. `disksim.c`: io_initialize(val);
+4. `disksim_iosim.c`: iodriver_initialize(standalone);
+5. `disksim_iodriver.c`: logorg_initialize(...);
+6. `disksim_logorg.c: 1104`: logorg_initialize(...) 声明
+
+
+RAID 请求重新映射流程：
 
 1. `disksim_main.c`: disksim_run_simulation();
 2. `disksim.c`: disksim_simulate_event(event_count);
-3. `disksim.c`: curr = getnextevent();
-4. `disksim_iosim.c`: io_internal_event(ioreq_event *curr);
-5. `disksim_iodriver.c`: iodriver_request(0, curr);
-6. `disksim_logorg.c`: logorg_maprequest(sysorgs, numsysorgs, curr);
+3. `disksim.c`: io_internal_event(ioreq_event *curr);
+4. `disksim_iosim.c`: iodriver_request(0, curr);
+5. `disksim_iodriver.c`: logorg_maprequest(sysorgs, numsysorgs, curr);
+6. `disksim_logorg.c:695`: logorg_maprequest(...) 声明
 
 
 ### disksim_logorg.h
@@ -209,7 +221,7 @@ int logorg_distn(logorg *result, char *s) {
 `logorgstat` 包含 RAID 的状态，`logorg` 包含 RAID 各种参数设置。
 
 <details>
-<summary>logorgstat</summary>
+<summary>logorgstat 结构体</summary>
 
 ```c
 typedef struct {
@@ -251,7 +263,7 @@ typedef struct {
 </details>
 
 <details>
-<summary>logorg</summary>
+<summary>logorg 结构体</summary>
 
 ```c
 typedef struct logorg {
@@ -312,3 +324,13 @@ typedef struct logorg {
 
 
 ### disksim_logorg.c
+
+主要关注与 Distribution Scheme 和 Redundancy 有关的代码。
+
+<details>
+<summary>logorg_maprequest() 函数</summary>
+
+```c
+
+```
+</details>
