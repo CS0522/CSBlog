@@ -102,21 +102,21 @@ make -j
 
 ### WADG 项目代码修改
 
-#### 1. LRUCache.h & LRUCache.cpp
+#### LRUCache.h & LRUCache.cpp
 
 对 LRU 队列的实现和封装，通过 `std::vector` 实现。
 
 * 加入到 LRU 头部：`put(id)`
 * 访问 LRU index 位置数据：`get(index)`
 
-#### 2. dkm.hpp
+#### dkm.hpp
 
 一个性能较好的 kmeans 库，接收数据格式为：`std::vector<std::array<T, N>>`。
 
 * 修改 dkm 接收数据格式为：`std::vector<std::vector<T>>`，并确保第二维 vector 长度固定
 
 
-#### 3. index_wasg.h
+#### index_wasg.h
 
 * IndexWADG class，继承于 IndexNSG class
   * 参数
@@ -151,17 +151,8 @@ make -j
     * 搜索路径长度
     * 路径中节点出度
 
-#### 4. index_wasg.cpp
+#### index_wasg.cpp
 
 实现 IndexWADG.h
 
-* （单线程版）Search(query, parameters, indices)
-  * 当 query_list 长度达到 window_size，进行热点识别和热点更新
-  * 热点识别和热点更新期间不进行 record_query
-
-* update_hot_points(search_res)
-  * search_res 中保存了 K 个热点，加入到 LRU 中
-
-* get_cluster_centers()
-  * 调用 dkm 库得到聚类中心
-  * 需要转化接收的数据格式
+多线程

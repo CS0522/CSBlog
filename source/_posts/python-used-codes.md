@@ -1,5 +1,5 @@
 ---
-title: 【文档小记】matplotlib 画图
+title: 【文档小记】记录 Python 中使用过的有用代码
 tags:
   - WADG
   - Python
@@ -14,7 +14,7 @@ cover: false
 date: 2024-04-03 00:55:17
 ---
 
-记录一下我用过的 matplotlib 库画图代码，以后应该还用的上。
+记录 Python 中使用过的有用代码，以后应该还用的上。
 
 <!-- more -->
 
