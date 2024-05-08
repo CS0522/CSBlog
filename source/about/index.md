@@ -11,7 +11,7 @@ sidebar: [blogger, category, guide, tagcloud, webinfo]
 </div>
 <div class="text" style="margin-left: 5%;">
 <p style="font-weight: bold; font-size: 30px">Chen Shi</p>
-<p style="font-size: 20px" align="left">Mobile: {% psw 18717109651 %}</p>
+<!-- <p style="font-size: 20px" align="left">Mobile: {% psw 18717109651 %}</p> -->
 <p style="font-size: 20px" align="left">Email: <a href="mailto: chenshi020522@outlook.com" target="_blank">chenshi020522@outlook.com</a></p>
 <p style="font-size: 20px" align="left">Blog1: <a href="https://CS0522.github.io" target="_blank">https://CS0522.github.io</a></p>
 <p style="font-size: 20px" align="left">Blog2: <a href="https://CS0522.gitee.io" target="_blank">https://CS0522.gitee.io</a></p>
