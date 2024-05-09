@@ -110,3 +110,34 @@ date: 2023-10-22 18:01:53
   ```
 
 * Theoretically it works
+
+
+---
+
+### 管理会话 —— screen
+
+管理会话，SSH 时断开连接也不中断正在运行的进程，重新连接 SSH 后可以恢复。
+
+  ```bash
+  # 安装 screen
+  sudo apt install screen
+
+  # 新建 screen
+  screen -S <name>
+  
+  # 进入 screen
+  screen -r <name>
+  
+  # 退出当前 screen
+  # 在当前 screen 下
+  Ctrl+A，Ctrl+D  
+  
+  # 显示 screen list
+  ​​​​​​​screen -ls
+  
+  # 删除指定 screen
+  # 在当前 screen 下
+  Ctrl+D
+  # 不在当前 screen 下
+  ​​​​​​​screen -S <name> -X quit
+  ```

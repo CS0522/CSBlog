@@ -24,11 +24,7 @@ date: 2023-10-22 18:01:26
 
 ### C++, Java 环境安装配置
   ```bash
-  sudo apt-get install g++
-  
-  sudo apt-get install gdb
-  
-  sudo apt install g++ gdb make ninja-build rsync zip
+  sudo apt install g++ gdb make build-essential ninja-build rsync zip
   
   sudo apt install openjdk-11-jdk
   
@@ -100,6 +96,8 @@ date: 2023-10-22 18:01:26
   frank ALL=(ALL:ALL) NOPASSWD: ALL
   ```
 
+---
+
 ## 软件安装
 
 ### 数据库
@@ -129,67 +127,96 @@ date: 2023-10-22 18:01:26
   ```
 </details>
 
-### 其他软件安装
-<details>
-<summary>点击查看</summary>
 
+### 安装 deb 软件包
+  
   ```bash
   # deb package
   sudo dpkg -i *.deb
+  ```
   
+### vim
+  
+  ```bash
   # vim
   sudo apt install gedit vim
+  ```
+
+### 主菜单编辑软件
   
+  ```bash
   # 主菜单编辑软件
   sudo apt install alacarte
+  ```
+
+### gnome-tweak-tool
   
+  ```bash
   # gnome-tweak-tool
   sudo apt install gnome-tweak-tool
+  ```
   
+### copyQ
+  
+  ```bash
   # copyQ
   sudo add-apt-repository ppa:hluk/copyq
   sudo apt update
   sudo apt install copyq
+  ```
   
+### indicator & stickynotes
+
+  ```bash
   # indicator stickynotes
   sudo add-apt-repository ppa:umang/indicator-stickynotes
   sudo apt-get update
   sudo apt-get install indicator-stickynotes
+  ```
   
+### jetbrains IDE
+
+  ```bash
   # jetbrains (idea & clion)
   sudo snap install intellij-idea-ultimate --classic
   sudo snap install clion --classic
+  ```
   
+### vscode
+
+  ```bash
   # vscode
-  sudo apt-get install wget gpg
-  wget -qO- https://packages.microsoft.com/keys/microsoft.    asc | gpg --dearmor > packages.microsoft.gpg
-  sudo install -D -o root -g root -m 644 packages.    microsoft.gpg /etc/apt/keyrings/packages.microsoft.gpg
-  sudo sh -c 'echo "deb [arch=amd64,arm64,armhf   signed-by=/etc/apt/keyrings/packages.microsoft.gpg]   https://packages.microsoft.com/repos/code stable main"    > /etc/apt/sources.list.d/vscode.list'
-  rm -f packages.microsoft.gpg
+  sudo dpkg -i code.deb
+  ```
   
-  sudo apt install apt-transport-https
-  sudo apt update
-  sudo apt install code
+### edge
   
+  ```bash
   # ms-edge
-  curl https://packages.microsoft.com/keys/microsoft. asc | gpg --dearmor > microsoft.gpg
-  sudo install -o root -g root -m 644 microsoft.gpg /etc/ apt/trusted.gpg.d/
-  sudo sh -c 'echo "deb [arch=amd64] https://packages.microsoft.com/repos/edge stable main" > /etc/apt/sources.list.d/microsoft-edge-dev.list'
-  sudo rm microsoft.gpg
-  
-  sudo apt update
-  sudo apt install microsoft-edge-dev
-  
+  sudo dpkg -i edge.deb
+  ```
+
+### systemback
+
+  ```bash
   # systemback
   sudo sh -c 'echo "deb [arch=amd64] http://mirrors.bwbot.org/ stable main" > /etc/apt/sources.list.d/systemback. list'
   sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key 50B2C005A67B264F
   sudo apt-get update
   sudo apt-get install systemback
+  ```
 
+### nvm, node
+
+  ```bash
   # 通过 nvm 安装 nodejs npm
   curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
   nvm install node
+  ```
 
+### conda
+
+  ```bash
   # anaconda3
   wget -P /tmp https://repo.anaconda.com/archive/Anaconda3-2020.02-Linux-x86_64.sh
   sudo gedit ~/.bashrc
@@ -197,4 +224,33 @@ date: 2023-10-22 18:01:26
   export PATH="/home/用户名/anaconda3/bin:$PATH"
   source ~/.bashrc
   ```
+
+### screen
+
+> 管理会话，SSH 时断开连接也不中断进程
+
+  ```bash
+  # 安装 screen
+  sudo apt install screen
+  
+  # 新建 screen
+  screen -S <name>
+  
+  # 进入 screen
+  screen -r <name>
+  
+  # 退出当前 screen
+  # 在当前 screen 下
+  Ctrl+A，Ctrl+D  
+  
+  # 显示 screen list
+  ​​​​​​​screen -ls
+  
+  # 删除指定 screen
+  # 在当前 screen 下
+  Ctrl+D
+  # 不在当前 screen 下
+  ​​​​​​​screen -S <name> -X quit
+  ```
+
 </details>
