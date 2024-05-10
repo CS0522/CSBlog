@@ -136,7 +136,7 @@ date: 2023-10-22 18:01:13
 ### 拉取远程代码并合并  
   ```bash
   git pull <远程主机名> <远程分支名>:<本地分支名> 
-  git pull origin master:brantest```  
+  git pull origin master:brantest  
   git pull origin master
   ```
 
