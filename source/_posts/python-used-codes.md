@@ -155,6 +155,65 @@ print(Dist)
 31.230593108783612
 ```
 
+## 计算向量距离: cdist(), pdist()
+
+在 `scripy.spatial.distance` 库下。
+
+`cdist()` 用于两个数组（矩阵）之间，`pdist()` 用于一个数组中。
+
+* `cdist()`: 
+  
+  X = m * n, Y = a * n, res = `cdist(X, Y)` = m * a
+
+  可以看作是 X 为 m 个 n 维向量，Y 为 a 个 n 维向量，
+  `cdist()` 求 X 中每个向量到 Y 中每个向量的距离，可以用来计算分离度。
+
+  ```python
+  X=np.array([[9,3,7],[5,7,9]]) 
+  # 即便是 X 中只有一组数据跟 Y 的两组数据分别求欧氏距离，
+  # 也需要写成二维数组的形式，如 X=np.array([[5,3,6]])
+  Y = np.array([[4,6,5],[4,2,3]])
+  res = cdist(X, Y, metric='euclidean')
+  print(res)
+
+  # output
+  [[a b]
+   [c d]]
+
+  # a 为向量 [9, 3, 7] 到 [4, 6, 5] 的距离
+  # b 为向量 [9, 3, 7] 到 [4, 2, 3] 的距离
+  # c 为向量 [5, 7, 9] 到 [4, 6, 5] 的距离
+  # d 为向量 [5, 7, 9] 到 [4, 2, 3] 的距离
+  ```
+
+* `pdist()` and `squareform()`: 
+
+  X = m * n, res = `pdist(X)` = m * m, 其中 res 为对称距离矩阵，对角线元素为 0。
+
+  `pdist()` 可以看作是求 X 中 m 个 n 维向量之间的距离，可以用来计算内聚度。
+
+  `squareform()` 和 `pdist()` 配套使用，用来压缩矩阵（或者还原矩阵）。
+
+  ```python
+  x = np.array([[ 0, 2, 3, 4],
+                [ 2, 0, 7, 8],
+                [ 3, 7, 0, 12],
+                [ 4, 8, 12, 0]])
+  y = dist.squareform(x)
+  print(y)
+  # output
+  [ 2,  3,  4,  7,  8, 12]
+  
+  x = dist.squareform(y)
+  print(x)
+  # output
+  [[ 0,  2,  3,  4],
+   [ 2,  0,  7,  8],
+   [ 3,  7,  0, 12],
+   [ 4,  8, 12,  0]]
+  ```
+
+
 ## 从列表或 array 中随机采样: random.choice()
 
 ```python
@@ -201,6 +260,37 @@ choices: [3 6 4 9]
  [1 3 1]
  [3 2 2]
  [3 6 1]]
+```
+
+## 从 array 中选取特定行
+
+```python
+import numpy as np
+from sklearn.cluster import KMeans
+
+queries = np.array([[1, 2, 3, 3],
+                   [2, 2, 4, 5],
+                   [3, 4, 5, 2],
+                   [2, 3, 6, 7],
+                   [5, 6, 4, 3],
+                   [1, 1, 2, 1]])
+
+kmeans = KMeans(n_clusters = 3)
+kmeans.fit(queries)
+cluster_centers = kmeans.cluster_centers_
+labels = kmeans.labels_
+print(labels)
+# labels 下标与 queries 行下标对应
+i = 2
+# 选取 label 为 2 的 query
+res = queries[labels == i]
+print(res)
+
+# output
+[0 2 1 2 1 0]
+
+[[2 2 4 5]
+ [2 3 6 7]]
 ```
 
 ## 去重: unique()
@@ -262,4 +352,17 @@ b = np.unique(B, axis = 0)
 [[1, 2, 3, 4]
  [2, 3, 4, 6]]
  
+```
+
+## 可遍历对象组合为索引序列: enurmerate()
+
+```python
+seasons = ['Spring', 'Summer', 'Fall', 'Winter']
+list(enumerate(seasons))
+# output
+[(0, 'Spring'), (1, 'Summer'), (2, 'Fall'), (3, 'Winter')]
+
+list(enumerate(seasons, start=1))       # 下标从 1 开始
+# output
+[(1, 'Spring'), (2, 'Summer'), (3, 'Fall'), (4, 'Winter')]
 ```
