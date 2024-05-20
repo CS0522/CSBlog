@@ -244,14 +244,14 @@ def find_first_needle(env, store):
 
 SimPy 学习  
 
-* {% post_link simpy-learning-01 %}  
+* {% post_link n-simpy-learning-01 %}  
 
-* {% post_link simpy-learning-02 %}  
+* {% post_link n-simpy-learning-02 %}  
 
-* {% post_link simpy-learning-03 %}
+* {% post_link n-simpy-learning-03 %}
 
-* {% post_link simpy-learning-04 %}
+* {% post_link n-simpy-learning-04 %}
 
-* {% post_link simpy-learning-05 %}
+* {% post_link n-simpy-learning-05 %}
 
-* {% post_link simpy-learning-06 %}
+* {% post_link n-simpy-learning-06 %}
