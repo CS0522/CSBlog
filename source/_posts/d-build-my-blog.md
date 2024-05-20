@@ -713,7 +713,7 @@ sudo apt install pandoc
    https://cdn.jsdelivr.net/gh/<Username>/<Repo>/<文件路径>
 
    # 例子
-   https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/srcmap/fig02.png
+   https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/l-srcmap/fig02.png
    ```
 
 

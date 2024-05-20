@@ -46,7 +46,7 @@ date: 2023-11-05 15:46:05
 
 调度如下图：
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/disksim-simpy/fig01.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-disksim-simpy/fig01.png)
 
 从 122 到 14 再到 124 的大摆动说明了这种调度的问题。如果对柱面 37 和 14 的请求一起处理，不管是在 122 和 124 之前或之后，总的磁头移动会大大减少，并且性能也会因此得以改善。
 
@@ -57,7 +57,7 @@ SSTF 算法<font color="red">选择处理距离当前磁头位置的最短寻道
 
 对于上面请求队列的示例，与开始磁头位置（53）的最近请求位于柱面 65。一旦位于柱面 65，下个最近请求位于柱面 67。从那里，由于柱面 37 比 98 还要近，所以下次处理 37。如此，会处理位于柱面 14 的请求，接着 98，122，124，最后183（图 2）。这种调度算法的磁头移动只有 236 个柱面。
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/disksim-simpy/fig02.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-disksim-simpy/fig02.png)
 
 SSTF 调度本质上是一种最短作业优先（SJF）调度；与 SJF 调度一样，它可能会导致一些请求的饥饿。假设在队列中有两个请求，分别针对柱面 14 和 186，而当处理来自 14 的请求时，另一个靠近 14 的请求来了，这个新的请求会下次处理，这样位于 186 的请求需要等待。而当这样的新的请求足够多的话，186 的请求就得不到服务。
 
@@ -70,7 +70,7 @@ SSTF 的算法并非最优。从 53 到 37 再到 14，移动的柱面总数更�
 
 如图所示。在采用 SCAN 来调度柱面 98、183、37、122、14、124、65 和 67 的请求之前，除了磁头的当前位置，还需知道磁头的移动方向。
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/disksim-simpy/fig03.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-disksim-simpy/fig03.png)
 
 假设磁头朝 0 移动并且磁头初始位置还是 53，磁头接下来处理 37，然后 14。在柱面 0 时，磁头会反转，移向磁盘的另一端，并处理柱面 65、67、98、122、124、183（图 3）上的请求。如果请求刚好在磁头前方加入队列，则它几乎马上就会得到服务；如果请求刚好在磁头后方加入队列，则它必须等待，直到磁头移到磁盘的另一端，反转方向，并返回。
 

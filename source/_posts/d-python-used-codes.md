@@ -1,7 +1,6 @@
 ---
 title: 【文档小记】记录 Python 中使用过的有用代码
 tags:
-  - WADG
   - Python
   - matplotlib
 toc: true

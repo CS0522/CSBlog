@@ -91,20 +91,20 @@ Windows 11 + VSCode (前端、后端) + IDEA (后端) + Edge + Apifox (接口测
 
 ### 数据库表关系
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/atlantis-project/admin.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/d-atlantis-project/admin.png)
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/atlantis-project/user.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/d-atlantis-project/user.png)
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/atlantis-project/member.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/d-atlantis-project/member.png)
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/atlantis-project/apply-user_admin.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/d-atlantis-project/apply-user_admin.png)
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/atlantis-project/article-category.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/d-atlantis-project/article-category.png)
 
 
 ### 路由关系
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/atlantis-project/route.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/d-atlantis-project/route.png)
 
 
 ### 总结

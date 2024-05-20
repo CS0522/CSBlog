@@ -84,7 +84,7 @@ make -j
 
 ### NSG 项目代码介绍
 
-![](./wadg-ann/nsg-algorithm.png)
+![](./l-wadg/nsg-algorithm.png)
 
 #### 1. index_nsg.h
 
