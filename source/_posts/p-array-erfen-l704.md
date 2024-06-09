@@ -41,9 +41,9 @@ date: 2024-04-25 19:58:50
 
 通过区间来判定。
 
-* [left, right]: while(left <= right), left = mid + 1, right = mid - 1
-* [left, right): while(left < right), left = mid + 1, right = mid
-* (left, right): while (left < right - 1), left = mid, right = mid
+* `[left, right]`: while(left <= right), left = mid + 1, right = mid - 1
+* `[left, right)`: while(left < right), left = mid + 1, right = mid
+* `(left, right)`: while (left < right - 1), left = mid, right = mid
 
 
 ## 代码
