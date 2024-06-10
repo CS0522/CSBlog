@@ -4,14 +4,14 @@ tags:
   - C++
   - 刷题
   - 数组
-  - 移除元素
+  - 双指针
 toc: true
 languages:
   - zh-CN
 categories:
   - 刷题日记
   - 数组
-  - 移除元素
+  - 双指针
 comments: false
 cover: false
 date: 2024-06-09 21:14:28

@@ -19,7 +19,7 @@ date: 2024-06-09 21:06:05
 
 ---
 
-## 思路
+## 数组
 
 ### 二分查找
 
@@ -28,7 +28,6 @@ date: 2024-06-09 21:06:05
 * {% post_link p-array-erfen-l34 %}  
 
 * {% post_link p-array-erfen-l69 %}
-
 
 #### 循环边界条件
 
@@ -41,17 +40,22 @@ date: 2024-06-09 21:06:05
 * `(left, right)`: while (left < right - 1), left = mid, right = mid
 
 
-### 移除元素
+### 双指针
 
-* {% post_link p-array-removeEle-l26 %}  
+* {% post_link p-array-doubleP-l26 %}  
 
-* {% post_link p-array-removeEle-l27 %}  
+* {% post_link p-array-doubleP-l27 %}  
 
-* {% post_link p-array-removeEle-l283 %}  
+* {% post_link p-array-doubleP-l283 %}  
 
-* {% post_link p-array-removeEle-l844 %}  
+* {% post_link p-array-doubleP-l844 %}  
 
-* {% post_link p-array-removeEle-l977 %}
+* {% post_link p-array-doubleP-l977 %}
+
+* {% post_link p-array-moveWindow-l209 %}
+
+* {% post_link p-array-moveWindow-l904 %}
+
 
 #### 快慢指针
 
@@ -61,4 +65,21 @@ date: 2024-06-09 21:06:05
 
 #### 左右指针
 
-* 注意从两边向中间指针移动的时候，注意最后的边界条件。可以看在最后一次处理的时候，数组的所有元素是否都已经处理完毕。
+* 注意从两边向中间指针移动的时候，最后的边界条件。可以看在最后一次处理的时候，数组的所有元素是否都已经处理完毕
+
+#### 滑动窗口
+
+* 与指针有点类似。窗口长度固定或者不固定。看作一个区间，就是不断的调节子序列的起始位置和终止位置，从而得出我们要想的结果
+* 实现滑动窗口，主要确定如下三点：
+  * 窗口内是什么？
+  * 如何移动窗口的起始位置？
+  * 如何移动窗口的结束位置？
+
+
+### 螺旋矩阵
+
+* {% post_link p-array-spiralMatrix-l59 %}
+
+#### 直接模拟
+
+* 注意循环条件，找到循环时同一的操作。
