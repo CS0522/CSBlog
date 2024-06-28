@@ -30,7 +30,7 @@ date: 2024-06-25 01:05:00
 
 ## 学习点
 
-
+* `ans = new ListNode(x.val, ans)`，当前指向节点A（或 null），构建新节点B，其 next 指针指向节点A（或 null），同时指针指向新节点B
 
 ## 代码
 
@@ -74,7 +74,7 @@ class Solution {
             // 新建 node 的 next 域指向当前 node
             // ans 指向新建 node
             // 以此达到反转指针的目的
-            ans = new ListNode(x.val,ans);
+            ans = new ListNode(x.val, ans);
         }
         return ans;
     }
