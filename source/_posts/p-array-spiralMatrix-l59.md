@@ -10,8 +10,7 @@ languages:
   - zh-CN
 categories:
   - 刷题日记
-  - 数组
-  - 螺旋矩阵
+  - 数组 - 螺旋矩阵
 comments: false
 cover: false
 date: 2024-06-10 20:40:12

@@ -10,8 +10,7 @@ languages:
   - zh-CN
 categories:
   - 刷题日记
-  - 数组
-  - 滑动窗口
+  - 数组 - 滑动窗口
 comments: false
 cover: false
 date: 2024-06-10 12:09:55

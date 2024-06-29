@@ -4,14 +4,12 @@ tags:
   - C++
   - 刷题
   - 链表
-  - 反转链表
 toc: true
 languages:
   - zh-CN
 categories:
   - 刷题日记
   - 链表
-  - 反转链表
 comments: false
 cover: false
 date: 2024-06-25 01:05:00

@@ -10,8 +10,7 @@ languages:
   - zh-CN
 categories:
   - 刷题日记
-  - 数组
-  - 双指针
+  - 数组 - 双指针
 comments: false
 cover: false
 date: 2024-06-09 22:22:50

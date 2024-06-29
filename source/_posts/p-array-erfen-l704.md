@@ -10,8 +10,7 @@ languages:
   - zh-CN
 categories:
   - 刷题日记
-  - 数组
-  - 二分查找
+  - 数组 - 二分查找
 comments: false
 cover: false
 date: 2024-04-25 19:58:50

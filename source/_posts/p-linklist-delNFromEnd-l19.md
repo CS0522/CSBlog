@@ -4,14 +4,12 @@ tags:
   - C++
   - 刷题
   - 链表
-  - 删除节点
 toc: true
 languages:
   - zh-CN
 categories:
   - 刷题日记
   - 链表
-  - 删除节点
 comments: false
 cover: false
 date: 2024-06-28 21:25:37
@@ -22,6 +20,8 @@ date: 2024-06-28 21:25:37
 <!-- more -->
 
 ---
+
+[19. 删除链表的倒数第 N 个结点](https://leetcode.cn/problems/remove-nth-node-from-end-of-list/description/)
 
 ## 思路
 

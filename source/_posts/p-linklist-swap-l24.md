@@ -4,14 +4,12 @@ tags:
   - C++
   - 刷题
   - 链表
-  - 交换节点
 toc: true
 languages:
   - zh-CN
 categories:
   - 刷题日记
   - 链表
-  - 交换节点
 comments: false
 cover: false
 date: 2024-06-25 10:58:30
@@ -22,6 +20,8 @@ date: 2024-06-25 10:58:30
 <!-- more -->
 
 ---
+
+[24. 两两交换链表中的节点](https://leetcode.cn/problems/swap-nodes-in-pairs/description/)
 
 ## 思路
 
