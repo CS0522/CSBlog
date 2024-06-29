@@ -253,4 +253,43 @@ date: 2023-10-22 18:01:26
   ​​​​​​​screen -S <name> -X quit
   ```
 
-</details>
+
+
+## 常用指令
+
+### 显示内存
+
+    ```bash
+    free
+    free -m
+    free -h
+    ```
+
+### screen
+
+> 管理会话，SSH 时断开连接也不中断进程
+
+  ```bash
+  # 安装 screen
+  sudo apt install screen
+  
+  # 新建 screen
+  screen -S <name>
+  
+  # 进入 screen
+  screen -r <name>
+  
+  # 退出当前 screen
+  # 在当前 screen 下
+  Ctrl+A，Ctrl+D  
+  
+  # 显示 screen list
+  ​​​​​​​screen -ls
+  
+  # 删除指定 screen
+  # 在当前 screen 下
+  Ctrl+D
+  # 不在当前 screen 下
+  ​​​​​​​screen -S <name> -X quit
+  ```
+
