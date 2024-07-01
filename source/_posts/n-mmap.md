@@ -24,7 +24,7 @@ mmap 可以把磁盘文件的一部分直接映射到内存，这样文件中的
 
 # 虚拟内存
 
-> https://welkinx.com/2020/02/07/mmap/
+[https://welkinx.com/2020/02/07/mmap/](https://welkinx.com/2020/02/07/mmap/)
 
 ## Linux 增加交换空间
 
@@ -181,7 +181,7 @@ swapon swapfile
 
 # mmap
 
-> https://www.cnblogs.com/huxiao-tee/p/4660352.html
+[https://www.cnblogs.com/huxiao-tee/p/4660352.html](https://www.cnblogs.com/huxiao-tee/p/4660352.html)
 
 ## mmap 简介
 
