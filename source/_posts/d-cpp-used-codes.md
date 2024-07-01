@@ -258,4 +258,14 @@ vec->push_back(30);
 vec->~vector();  // 手动调用析构函数
 ```
 
+## placement new
+
+允许在已经分配好的内存区域中创建对象，可以决定对象存储的确切位置。
+
+```cpp
+std::vector<std::vector<float>>* data = new(v_mem) std::vector<std::vector<float>>();
+```
+
+其中 v_mem 为指针，指向预分配的内存地址。
+
 ## 

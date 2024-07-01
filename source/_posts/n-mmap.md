@@ -70,23 +70,92 @@ swapon swapfile
 
 ## 创建虚拟内存实例
 
-### 1. 创建虚拟内存、在虚拟内存中存储 vector
+### 1. 创建虚拟内存、在虚拟内存中读入大文件数据并存储
+
+注意 placement new 表达式的用法，其中 new(place) 中 place 为指针，指向预分配的内存地址。
 
 <details>
   <summary>点击查看</summary>
 
   ```cpp
-  void virtual_mem_read_bvecs(std::string &filename, off_t mem_size)
+  #include <iostream>
+  #include <fstream>
+  #include <sys/mman.h>
+  #include <sys/types.h>
+  #include <sys/stat.h>
+  #include <fcntl.h>
+  #include <stdlib.h>
+  #include <unistd.h>
+  #include <cstring>
+  #include <vector>
+  
+  /**
+   * TODO
+   * 用 mmap 实现虚拟大内存，并构建一个接口调用；
+   * 在这块虚拟大内存中读入数据集并保存，用于建图。
+  */
+  
+  
+  /**
+   * @name: create_virtual_mem
+   * @msg: 创建虚拟内存，并返回指向该内存地址的指针
+   * @param {off_t&} mem_size: 虚拟内存大小
+   * @param {int&} fd: 文件描述符，main 函数中指定
+   * @return {void*}: 虚拟内存指针
+   */
+  void* create_virtual_mem(off_t &mem_size, int &fd)
   {
       // 使用 /dev/zero 作为匿名内存映射的数据源
-      int fd_v_mem = open("/dev/zero", O_RDWR);
-      void* v_mem = mmap(nullptr, mem_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd_v_mem, 0);
+      fd = open("/dev/zero", O_RDWR);
+      void* v_mem = mmap(nullptr, mem_size, PROT_READ | PROT_WRITE, MAP_PRIVATE | MAP_ANONYMOUS, fd, 0);
       // 映射失败
-      if (v_mem == MAP_FAILED) {
+      if (v_mem == MAP_FAILED) 
+      {
           std::cout << "Create virtual memory failed. Reason: " << strerror(errno) << std::endl;
           exit(EXIT_FAILURE);
       }
-
+  
+      // 文件和映射统一关闭
+  
+      // 返回虚拟内存指针
+      return v_mem;
+  }
+  
+  
+  /**
+   * @name: release_mem
+   * @msg: 释放虚拟内存以及内存映射
+   * @param {void*} v_mem: 指向虚拟内存的指针
+   * @param {off_t&} mem_size: 虚拟内存大小
+   * @param {int&} fd: 文件描述符，用于关闭虚拟内存打开的 /dev/zero
+   * @param {u_char* &} file_map: 读取大文件时的内存映射的指针
+   * @param {off_t &} file_size: 被映射的大文件的长度（字节）
+   * @return {void}
+   */
+  void release_mem(void* v_mem, off_t &mem_size, int &fd, u_char* &file_map, off_t &file_size)
+  {
+      munmap(v_mem, mem_size);
+      close(fd);
+      // 关闭 read data 映射
+      munmap(file_map, file_size);
+      // 关闭文件
+      close(fd);
+  }
+  
+  
+  /**
+   * @name: mmap_read_bvecs
+   * @msg: 通过 mmap 内存映射读取 *.bvecs 文件
+   * @param {string} &filename: 文件名
+   * @param {void*} &v_mem: 虚拟内存指针
+   * @param {u_char* &} file_map: 读取大文件时的内存映射的指针
+   * @param {off_t &} file_size: 被映射的大文件的长度（字节）
+   * @param {std::vector<std::vector<float>>* &} data: 存储数据
+   * @return {void}
+   */
+  void mmap_read_bvecs(std::string &filename, void* v_mem, u_char* &file_map, off_t &file_size,
+                                                   std::vector<std::vector<float>>* &data)
+  {
       // 获取文件描述符
       int fd = open(filename.c_str(), O_RDWR);
       // 打开失败
@@ -103,74 +172,86 @@ swapon swapfile
           close(fd);
           exit(EXIT_FAILURE);
       }
-
+  
       // 文件大小
-      off_t file_size = fs.st_size;
+      file_size = fs.st_size;
       std::cout << "File size: " << file_size << std::endl;
-
+      
       // read data 映射，获得指针
-      u_char* p = (u_char*)mmap(NULL, (file_size / 10), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      file_map = (u_char*)mmap(nullptr, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
       // 映射失败
-      if (p == MAP_FAILED) 
+      if (file_map == MAP_FAILED) 
       {
           perror("Memory mapping failed. Reason");
           close(fd);
           exit(EXIT_FAILURE);
       }
-
-      // 存储数据，在虚拟内存中开辟空间
-      std::vector<std::vector<float>>* data = new(v_mem) std::vector<std::vector<float>>();
-
+  
       // 访问数据
       long long byte_count = 0LL;
       // vector number
       long long num = 0;
-      while(byte_count < (file_size / 10))
+      std::cout << "Reading..." << std::endl;
+      while(byte_count < file_size)
       {
           // vector dimension
           int dim;
-          u_char* q = p + byte_count;
+          u_char* q = file_map + byte_count;
           dim = *(int*)q;
           q += sizeof(int);
-          // store vector
-          std::vector<float> *vec = new(v_mem) std::vector<float>(dim);
+          // 物理内存内保存单个数据
+          std::vector<float> vec(dim);
           for (int i = 0; i < dim; i++)
           {
-              (*vec)[i] = (float)*(q + i);
+              vec[i] = (float)*(q + i);
           }
           // 存储到 data 中
-          data->push_back(std::move((*vec)));
-          std::cout << "vector " << num << " stored. " << std::endl;
-  
+          data->push_back(std::move(vec));
+   
           byte_count += sizeof(int) + dim * sizeof(u_char);
           num += 1;
       }
-
-      // output data
-      auto vector_num = data->size();
-      auto vector_dim = (*data)[0].size();
-      std::cout << "vectors num: " << vector_num << std::endl;
-      std::cout << "vector dimension: " << vector_dim << std::endl;
-      for (size_t i = 0; i < 2; ++i)
-      {
-          std::cout << "[";
-          for (size_t j = 0; j < vector_dim; ++j)
-          {
-              std::cout << (*data)[i][j] << ((j == vector_dim - 1) ? "" : ", ");
-          }
-          std::cout << "]\n";
-      }
-
-      data->~vector();
-
-      // 关闭 read data 映射
-      munmap(p, file_size);
-      // 关闭文件
-      close(fd);
-
-      // 关闭虚拟内存
-      munmap(v_mem, mem_size);
-      close(fd_v_mem);
+  
+      // 文件和映射需要统一关闭
+  }
+  
+  
+  int main()
+  {
+      std::string filename = "./dataset/bigann_learn.bvecs";
+      
+      // 创建虚拟内存
+      int fd_v_mem;
+      off_t mem_size = 1024 * 1024 * 1024 * 20LL;
+      auto v_mem = create_virtual_mem(mem_size, fd_v_mem);
+      
+      // 读入数据
+      u_char *file_map = nullptr;
+      off_t file_size = 0LL;
+      // 在虚拟内存中开辟空间存储
+      // 注意 placement new 表达式的用法
+      std::vector<std::vector<float>>* data = new(v_mem) std::vector<std::vector<float>>();
+      mmap_read_bvecs(filename, v_mem, file_map, file_size, data);
+      
+      // output
+      auto vec_num = data->size();
+      auto vec_dim = (*data)[0].size();
+      std::cout << "vector number: " << vec_num << std::endl;
+      std::cout << "vector dimension: " << vec_dim << std::endl;
+      // for (size_t i = 0; i < vec_num; ++i)
+      // {
+      //     std::cout << "[";
+      //     for (size_t j = 0; j < vec_dim; ++j)
+      //     {
+      //         std::cout << (*data)[i][j] << ((j == vec_dim - 1) ? "" : ", ");
+      //     }
+      //     std::cout << "]\n";
+      // }
+  
+      // 关闭映射和虚拟内存
+      release_mem(v_mem, mem_size, fd_v_mem, file_map, file_size);
+  
+      return 0;
   }
   ```
 
