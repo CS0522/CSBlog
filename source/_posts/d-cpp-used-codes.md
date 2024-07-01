@@ -126,43 +126,136 @@ std::vector<std::vector<float>> read_bvecs(const std::string &filename)
 }
 ```
 
-mmap 内存映射读取部分 bvcecs 向量
+## mmap 内存映射读取大文件的一部分
 
 ```cpp
-std::vector<std::vector<float>> mmap_read_bvecs(std::string &filename)
+void mmap_read_bvecs(std::string &filename)
 {
-    // num
-    int num = 100;
-    // length
-    int dim = 128;
-    // 多少个字节
-    int len = (dim + 4) * num;
     // 获取文件描述符
     int fd = open(filename.c_str(), O_RDWR);
     // 打开失败
     if (fd == -1)
     {
+        perror(("Open \"" + filename + "\" failed. Reason").c_str());
         exit(EXIT_FAILURE);
     }
-    // 内存映射，获得指针
-    u_char* p = (u_char*)mmap(NULL, len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-
-    // 存储数据
-    std::vector<std::vector<float>> data;
-    // 获取数据
-    for (int i = 0; i < num; i++)
-    {
-        std::vector<float> vec(dim);
-        for (int j = 0; j < dim; j++)
-        {
-            vec[j] = (float)(p[i * (dim + 4) + 4 + j]);
-        }
-        data.push_back(std::move(vec));
+    // 获取文件信息
+    struct stat fs;
+    // 获取失败
+    if (fstat(fd, &fs) == -1) {
+        perror("Get file information filed. Reason");
+        close(fd);
+        exit(EXIT_FAILURE);
     }
 
-    // 关闭映射
-    munmap(p, len);
+    // 文件大小
+    off_t file_size = fs.st_size;
+    std::cout << "File size: " << file_size << std::endl;
+    
+    // 内存映射，获得指针
+    u_char* p = (u_char*)mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    // 映射失败
+    if (p == MAP_FAILED) 
+    {
+        perror("Memory mapping failed. Reason");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
 
-    return data;
+    // 访问数据
+    long long byte_count = 0LL;
+    // 获取 vector number
+    int num = 0;
+    while(byte_count < file_size)
+    {
+        // vector dimension
+        int dim;
+        u_char *q = p + byte_count;
+        dim = *(int*)q;
+        q += sizeof(int);
+        // output vector
+        // std::cout << "[";
+        for (int i = 0; i < dim; i++)
+        {
+            std::cout << (float)*(q + i) << ((i == dim - 1) ? "]\n" : ", ");
+        }
+
+        byte_count += sizeof(int) + dim * sizeof(u_char);
+        num += 1;
+    }
+
+    // output vector number
+    std::cout << "vector num: " << num << std::endl;
+    // 关闭映射
+    munmap(p, file_size);
+    // 关闭文件
+    close(fd);
+}
+
+```
+
+
+## 打印错误信息
+
+* `void perror(const char *s)` 用来将上一个函数发生错误的原因输出到标准设备 (stderr)。参数 s 所指的字符串会先打印，后面再加上错误原因字符串。此错误原因依照全局变量 error 的值来决定要输出的字符串。在库函数中有个error变量，每个error值对应着以字符串表示的错误类型。当调用函数出错时，该函数已经重新设置了error的值。perror 将输入的一些信息和现在的error所对应的错误一起输出。
+
+* `strerror()` 通过标准错误的标号，获得错误的描述字符串，将单纯的错误标号转为字符串描述，方便用户查找错误。
+
+```cpp
+void perror(const char *s);
+char* strerror(errno);
+
+// perror
+// 获取文件描述符
+int fd = open(filename.c_str(), O_RDWR);
+// 打开失败
+if (fd == -1)
+{
+    perror(("Open \"" + filename + "\" failed. Reason").c_str());
+    exit(EXIT_FAILURE);
+}
+
+// strerror
+printf("strerror: %s\n", strerror(errno));
+```
+
+
+## 创建虚拟内存
+
+```cpp
+int main() {
+    off_t size = 1024 * 1024;  // 虚拟内存大小为 1MB
+    int fd = open("/dev/zero", O_RDWR);  // 使用 /dev/zero 作为匿名内存映射的数据源
+    void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd, 0);
+
+    if (ptr == MAP_FAILED) {
+        std::cerr << "mmap failed" << std::endl;
+        return 1;
+    }
+
+    // 可以使用 ptr 来访问这块虚拟内存
+    // ...
+
+    munmap(ptr, size);  // 当不再需要这块虚拟内存时，记得释放它
+    close(fd);  // 关闭文件描述符
 }
 ```
+
+## 虚拟内存中创建 vector 数组
+
+在虚拟内存中使用**定位 new 运算符（placement new）**，最后手动在虚拟内存中调用 std::vector 的析构函数
+
+```cpp
+// 使用虚拟内存创建 std::vector
+std::vector<int>* vec = new (ptr) std::vector<int>();
+
+// 添加元素到 vector
+vec->push_back(10);
+vec->push_back(20);
+vec->push_back(30);
+
+// 释放 vector
+vec->~vector();  // 手动调用析构函数
+```
+
+## 

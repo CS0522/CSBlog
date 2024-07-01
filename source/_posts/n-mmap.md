@@ -1,7 +1,8 @@
 ---
-title: 【学习笔记】mmap 内存映射
+title: 【学习笔记】虚拟内存 + mmap 内存映射
 tags:
   - mmap
+  - 虚拟内存
   - Linux
   - C++
 toc: true
@@ -19,9 +20,202 @@ mmap 可以把磁盘文件的一部分直接映射到内存，这样文件中的
 
 <!-- more -->
 
+---
+
+# 虚拟内存
+
+> https://welkinx.com/2020/02/07/mmap/
+
+## Linux 增加交换空间
+
+未开启交换空间：
+
+```bash
+sudo su
+# 查看内存使用情况
+free -h
+
+# 创建 swap 文件
+# 单位 bs 为 G，大小 count 为 20，创建 20G 交换空间
+dd if=/dev/zero of=/swapfile bs=1G count=20
+
+# 激活 swap 文件
+chmod 600 swapfile
+mkswap swapfile
+
+# 开启 swap
+swapon swapfile
+
+free -h
+# 查看已开启的交换空间
+swapon --show
+```
+
+已开启交换空间，重新修改 swap 大小：
+
+```bash
+# 查看内存使用情况
+free -h
+
+# 关闭指定 swap
+swapoff /swapfile
+
+# 重新分配
+fallocate -l 30G /swapfile
+
+chmod 600 swapfile
+mkswap swapfile
+swapon swapfile
+```
+
+## 创建虚拟内存实例
+
+### 1. 创建虚拟内存、在虚拟内存中存储 vector
+
+<details>
+  <summary>点击查看</summary>
+
+  ```cpp
+  void virtual_mem_read_bvecs(std::string &filename, off_t mem_size)
+  {
+      // 使用 /dev/zero 作为匿名内存映射的数据源
+      int fd_v_mem = open("/dev/zero", O_RDWR);
+      void* v_mem = mmap(nullptr, mem_size, PROT_READ | PROT_WRITE, MAP_PRIVATE, fd_v_mem, 0);
+      // 映射失败
+      if (v_mem == MAP_FAILED) {
+          std::cout << "Create virtual memory failed. Reason: " << strerror(errno) << std::endl;
+          exit(EXIT_FAILURE);
+      }
+
+      // 获取文件描述符
+      int fd = open(filename.c_str(), O_RDWR);
+      // 打开失败
+      if (fd == -1)
+      {
+          perror(("Open \"" + filename + "\" failed. Reason").c_str());
+          exit(EXIT_FAILURE);
+      }
+      // 获取文件信息
+      struct stat fs;
+      // 获取失败
+      if (fstat(fd, &fs) == -1) {
+          perror("Get file information filed. Reason");
+          close(fd);
+          exit(EXIT_FAILURE);
+      }
+
+      // 文件大小
+      off_t file_size = fs.st_size;
+      std::cout << "File size: " << file_size << std::endl;
+
+      // read data 映射，获得指针
+      u_char* p = (u_char*)mmap(NULL, (file_size / 10), PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+      // 映射失败
+      if (p == MAP_FAILED) 
+      {
+          perror("Memory mapping failed. Reason");
+          close(fd);
+          exit(EXIT_FAILURE);
+      }
+
+      // 存储数据，在虚拟内存中开辟空间
+      std::vector<std::vector<float>>* data = new(v_mem) std::vector<std::vector<float>>();
+
+      // 访问数据
+      long long byte_count = 0LL;
+      // vector number
+      long long num = 0;
+      while(byte_count < (file_size / 10))
+      {
+          // vector dimension
+          int dim;
+          u_char* q = p + byte_count;
+          dim = *(int*)q;
+          q += sizeof(int);
+          // store vector
+          std::vector<float> *vec = new(v_mem) std::vector<float>(dim);
+          for (int i = 0; i < dim; i++)
+          {
+              (*vec)[i] = (float)*(q + i);
+          }
+          // 存储到 data 中
+          data->push_back(std::move((*vec)));
+          std::cout << "vector " << num << " stored. " << std::endl;
+  
+          byte_count += sizeof(int) + dim * sizeof(u_char);
+          num += 1;
+      }
+
+      // output data
+      auto vector_num = data->size();
+      auto vector_dim = (*data)[0].size();
+      std::cout << "vectors num: " << vector_num << std::endl;
+      std::cout << "vector dimension: " << vector_dim << std::endl;
+      for (size_t i = 0; i < 2; ++i)
+      {
+          std::cout << "[";
+          for (size_t j = 0; j < vector_dim; ++j)
+          {
+              std::cout << (*data)[i][j] << ((j == vector_dim - 1) ? "" : ", ");
+          }
+          std::cout << "]\n";
+      }
+
+      data->~vector();
+
+      // 关闭 read data 映射
+      munmap(p, file_size);
+      // 关闭文件
+      close(fd);
+
+      // 关闭虚拟内存
+      munmap(v_mem, mem_size);
+      close(fd_v_mem);
+  }
+  ```
+
+</details>
+
+---
+
+
+# mmap
+
+> https://www.cnblogs.com/huxiao-tee/p/4660352.html
+
 ## mmap 简介
 
 mmap 可以把磁盘文件的一部分直接映射到内存，这样文件中的位置直接就有对应的内存地址，对文件的读写可以直接用指针而不需要 read/write 函数。
+
+此函数的作用是创建一个新的**虚拟内存**区域，并将指定的对象映射到此区域。
+
+内存映射（Memory Mapping）将文件内容映射到进程的虚拟地址空间。在这种机制下，文件可以被视为内存的一部分，从而允许程序直接对这部分内存进行读写操作，而无需传统的文件 I/O 调用，**从而减少系统的用户态、内核态切换**，减少切换开销。通过这种方式，文件内容可以通过指针直接访问，就像访问普通的内存数组一样，这极大地提高了文件操作的效率和直观性。
+
+映射时，操作系统将文件的一部分或全部内容映射到虚拟内存地址空间。这些虚拟地址与物理内存地址相关联，但并不是所有数据立即加载到物理内存中。
+
+当访问映射的地址时，如果对应数据不在物理内存中，操作系统会自动从磁盘加载所需的数据页到物理内存中（这称为“页错误”处理）。
+
+### mmap 特点
+#### 数据持久化
+
+通过 mmap 映射的数据通常来自文件系统中的文件。这意味着数据是持久化的，即使程序终止，文件中的数据依然存在。当你通过映射的内存区域修改数据时，这些更改最终会反映到磁盘上的文件中。
+
+#### 大文件读写
+
+mmap 特别适合于需要频繁读写大文件的场景，因为它可以减少磁盘 I/O 操作的次数。它也允许文件的一部分被映射到内存中，这对于处理大型文件尤为有用。
+
+#### 性能和效率
+
+映射文件到内存可以提高文件访问的效率，尤其是对于随机访问或频繁读写的场景。系统可以利用虚拟内存管理和页缓存机制来优化访问。
+
+#### 同步和一致性
+
+使用 mmap 时，必须考虑到文件内容的同步问题。例如，使用 `msync` 调用来确保内存中的更改被同步到磁盘文件中。
+
+#### 页缓存
+
+使用 mmap 映射文件到内存时，操作系统利用**页缓存**（提升文件读写效率。在内存上，与文件中的数据块进行绑定。文件被划分为多个页大小的数据块）来优化对这些文件数据的访问。页缓存是操作系统的一部分，用于存储从磁盘读取的数据页。
+访问 mmap 映射的文件时，并不是每次读取都会直接触及磁盘。如果所需数据已经在页缓存中（由于之前的读取操作），则直接从缓存中获取数据，而不需要磁盘 I/O。
 
 
 ## mmap 函数介绍
@@ -37,7 +231,7 @@ int munmap(void *addr, size_t len);
 
 * `addr`: 内存上的映射地址，给内核一个提示（建议），从（内存上）什么地址开始映射。建立映射后，真正的映射首地址通过返回值得到。如果 `addr` 为空，则内核自己选择合适的地址。
 
-* `len`: 需要映射的那部分文件的长度（多少个字节），在内存中需要相同的大小。
+* `len`: 需要映射的那部分文件的长度（多少个字节），代表将文件中多大的部分映射到内存。
 
 * `prot`: 4 个取值
   * `PROT_EXEC`: 映射部分可执行，如动态库
@@ -68,11 +262,9 @@ int munmap(void *addr, size_t len);
 #include <unistd.h>
 ```
 
-
-
 ---
 
-## 实例
+## mmap 实例
 
 ### 1. 简单对文件进行修改
 
@@ -110,38 +302,67 @@ int main()
 ```cpp
 std::vector<std::vector<float>> mmap_read_bvecs(std::string &filename)
 {
-    // num
-    int num = 100;
-    // length
-    int dim = 128;
-    // 多少个字节
-    int len = (dim + 4) * num;
     // 获取文件描述符
     int fd = open(filename.c_str(), O_RDWR);
     // 打开失败
     if (fd == -1)
     {
+        perror(("Open \"" + filename + "\" failed. Reason").c_str());
         exit(EXIT_FAILURE);
     }
-    // 内存映射，获得指针
-    u_char* p = (u_char*)mmap(NULL, len, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-
-    // 存储数据
-    std::vector<std::vector<float>> data;
-    // 获取数据
-    for (int i = 0; i < num; i++)
-    {
-        std::vector<float> vec(dim);
-        for (int j = 0; j < dim; j++)
-        {
-            vec[j] = (float)(p[i * (dim + 4) + 4 + j]);
-        }
-        data.push_back(std::move(vec));
+    // 获取文件信息
+    struct stat fs;
+    // 获取失败
+    if (fstat(fd, &fs) == -1) {
+        perror("Get file information filed. Reason");
+        close(fd);
+        exit(EXIT_FAILURE);
     }
 
-    // 关闭映射
-    munmap(p, len);
+    // 文件大小
+    off_t file_size = fs.st_size;
+    std::cout << "File size: " << file_size << std::endl;
+    
+    // 内存映射，获得指针
+    u_char* p = (u_char*)mmap(NULL, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    // 映射失败
+    if (p == MAP_FAILED) 
+    {
+        perror("Memory mapping failed. Reason");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
 
-    return data;
+    // 访问数据
+    long long byte_count = 0LL;
+    // 获取 vector number
+    int num = 0;
+    while(byte_count < file_size)
+    {
+        // vector dimension
+        int dim;
+        u_char *q = p + byte_count;
+        dim = *(int*)q;
+        q += sizeof(int);
+        // output vector
+        // std::cout << "[";
+        for (int i = 0; i < dim; i++)
+        {
+            std::cout << (float)*(q + i) << ((i == dim - 1) ? "]\n" : ", ");
+        }
+
+        byte_count += sizeof(int) + dim * sizeof(u_char);
+        num += 1;
+    }
+
+    // output vector number
+    std::cout << "vector num: " << num << std::endl;
+    // 关闭映射
+    munmap(p, file_size);
+    // 关闭文件
+    close(fd);
+
+    // return data;
+    return {};
 }
 ```

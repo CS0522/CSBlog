@@ -293,3 +293,45 @@ date: 2023-10-22 18:01:26
   ​​​​​​​screen -S <name> -X quit
   ```
 
+
+### 增加虚拟内存交换空间
+
+未开启交换空间：
+
+```bash
+sudo su
+# 查看内存使用情况
+free -h
+
+# 创建 swap 文件
+# 单位 bs 为 G，大小 count 为 20，创建 20G 交换空间
+dd if=/dev/zero of=/swapfile bs=1G count=20
+
+# 激活 swap 文件
+chmod 600 swapfile
+mkswap swapfile
+
+# 开启 swap
+swapon swapfile
+
+free -h
+# 查看已开启的交换空间
+swapon --show
+```
+
+已开启交换空间，重新修改 swap 大小：
+
+```bash
+# 查看内存使用情况
+free -h
+
+# 关闭指定 swap
+swapoff /swapfile
+
+# 重新分配
+fallocate -l 30G /swapfile
+
+chmod 600 swapfile
+mkswap swapfile
+swapon swapfile
+```
