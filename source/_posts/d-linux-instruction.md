@@ -46,35 +46,6 @@ date: 2023-10-22 18:01:26
   sudo update-locale LANG=zh_CN.UTF-8
   ```
 
-### Surface-Linux
-> [Surface安装Ubuntu指南](https://blog.csdn.net/weixin_43858776/article/details/109351218)  
-
-<details>
-<summary>点击查看</summary>
-
-  ```bash
-  wget -qO - https://raw.githubusercontent.com/linux-surface/linux-surface/master/pkg/keys/surface.asc \
-  | gpg --dearmor | sudo dd of=/etc/apt/trusted.gpg.d/linux-surface.gpg
-  
-  echo "deb [arch=amd64] https://pkg.surfacelinux.com/debian release main" \
-  | sudo tee /etc/apt/sources.list.d/linux-surface.list
-  
-  sudo apt update
-  
-  # if errors
-  sudo add-apt-repository ppa:gpxbv/apt-urlfix
-  sudo apt-get update
-  sudo apt install apt
-  
-  sudo apt install linux-image-surface    linux-headers-surface iptsd libwacom-surface
-  
-  sudo systemctl enable iptsd
-  
-  sudo apt install linux-surface-secureboot-mok
-  
-  sudo update-grub
-  ```
-</details>
 
 ### 删除桌面回收站、用户文件图标
   ```bash
@@ -255,7 +226,7 @@ date: 2023-10-22 18:01:26
 
 
 
-## 常用指令
+## 常用命令 / 解决方案
 
 ### 显示内存
 
@@ -335,3 +306,17 @@ chmod 600 swapfile
 mkswap swapfile
 swapon swapfile
 ```
+
+### 动态库无法链接 cannot open shared object file
+
+```bash
+sudo vim /etc/ld.so.conf
+
+# 在 ld.so.conf 中加入 *.so 的绝对路径，如
+# /usr/local/lib
+
+# 对配置文件 /etc/ld.so.conf 中定义的路径下的程序库重新建立必要的链接
+sudo ldconfig
+```
+
+### 

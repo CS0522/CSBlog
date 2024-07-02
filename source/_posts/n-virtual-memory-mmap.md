@@ -447,3 +447,244 @@ std::vector<std::vector<float>> mmap_read_bvecs(std::string &filename)
     return {};
 }
 ```
+
+
+---
+
+## 3. 虚拟内存分配例子
+
+### 3.1 mmap_read_bvecs
+
+`mmap_read_bvecs` 函数单独写在一个 cpp 文件中
+
+```cpp
+#include <iostream>
+#include <fstream>
+#include <sys/mman.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <cstring>
+#include <mimalloc.h>
+#include <vector>
+
+/**
+ * @name: mmap_read_bvecs
+ * @msg: 通过 mmap 内存映射读取 *.bvecs 文件
+ * @param {string} &filename: 文件名
+ * @param {void*} &v_mem: 虚拟内存指针
+ * @param {u_char* &} file_map: 读取大文件时的内存映射的指针
+ * @param {off_t &} file_size: 被映射的大文件的长度（字节）
+ * @param {std::vector<std::vector<float>>* &} data: 存储数据
+ * @return {void}
+ */
+void mmap_read_bvecs(std::string &filename, 
+                        u_char* &file_map, off_t &file_size, 
+                        std::vector<std::vector<float>>* &data)
+{
+    // 获取文件描述符
+    int fd = open(filename.c_str(), O_RDWR);
+    // 打开失败
+    if (fd == -1)
+    {
+        perror(("Open \"" + filename + "\" failed. Reason").c_str());
+        exit(EXIT_FAILURE);
+    }
+    // 获取文件信息
+    struct stat fs;
+    // 获取失败
+    if (fstat(fd, &fs) == -1) {
+        perror("Get file information filed. Reason");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    // 文件大小
+    file_size = fs.st_size;
+    std::cout << "File size: " << file_size << std::endl;
+    
+    // read data 映射，获得指针
+    file_map = (u_char*)mmap(nullptr, file_size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
+    // 映射失败
+    if (file_map == MAP_FAILED) 
+    {
+        perror("Memory mapping failed. Reason");
+        close(fd);
+        exit(EXIT_FAILURE);
+    }
+
+    // 访问数据
+    long long byte_count = 0LL;
+    // vector number
+    long long num = 0;
+    std::cout << "Reading..." << std::endl;
+    while(byte_count < file_size)
+    {
+        // vector dimension
+        int dim;
+        u_char* q = file_map + byte_count;
+        dim = *(int*)q;
+        q += sizeof(int);
+        // 物理内存内保存单个数据
+        std::vector<float> vec(dim);
+        for (int i = 0; i < dim; i++)
+        {
+            vec[i] = (float)*(q + i);
+        }
+        // 存储到 data 中
+        data->push_back(std::move(vec));
+ 
+        byte_count += sizeof(int) + dim * sizeof(u_char);
+        num += 1;
+    }
+
+    // 文件和映射需要统一关闭
+    close(fd);
+}
+
+
+/**
+ * @name: release_mmap
+ * @msg: 释放内存映射
+ * @param {u_char* &} file_map: 读取大文件时的内存映射的指针
+ * @param {off_t &} file_size: 被映射的大文件的长度（字节）
+ * @return {void}
+ */
+void release_mmap(u_char* &file_map, off_t &file_size)
+{
+    // 关闭 read data 映射
+    munmap(file_map, file_size);
+}
+```
+
+### 3.2 virtual_mem_test
+
+直接调用 Linux API，手动创建虚拟内存后，在虚拟内存中开辟空间
+
+```cpp
+int main()
+{
+    std::string filename = "./dataset/bigann_learn.bvecs";
+    
+    // 创建虚拟内存
+    int fd_v_mem;
+    off_t mem_size = 1024 * 1024 * 1024 * 65LL;
+    auto v_mem = create_virtual_mem(mem_size, fd_v_mem);
+    
+    // 读入数据
+    u_char *file_map = nullptr;
+    off_t file_size = 0LL;
+    // 在虚拟内存中开辟空间存储
+    // 注意 placement new 表达式的用法
+    std::vector<std::vector<float>>* data = new (v_mem) std::vector<std::vector<float>>();
+    mmap_read_bvecs(filename, file_map, file_size, data);
+    
+    // output
+    auto vec_num = data->size();
+    auto vec_dim = (*data)[0].size();
+    std::cout << "vector number: " << vec_num << std::endl;
+    std::cout << "vector dimension: " << vec_dim << std::endl;
+    // for (size_t i = 0; i < vec_num; ++i)
+    // {
+    //     std::cout << "[";
+    //     for (size_t j = 0; j < vec_dim; ++j)
+    //     {
+    //         std::cout << (*data)[i][j] << ((j == vec_dim - 1) ? "" : ", ");
+    //     }
+    //     std::cout << "]\n";
+    // }
+
+    // 关闭映射和虚拟内存
+    release_mem(v_mem, mem_size, fd_v_mem, file_map, file_size);
+
+    return 0;
+}
+```
+
+### 3.3 boost_interprocess_test
+
+使用 Boost::interprocess 库，共享内存。在磁盘上创建一块空间用于文件映射。
+
+```cpp
+#include <boost/interprocess/managed_mapped_file.hpp>
+#include "mmap_read_bvecs.cpp"
+
+namespace bip = boost::interprocess;
+
+int main()
+{
+    // 创建共享内存
+    std::size_t mem_size = 1024 * 1024 * 1024 * 100LL;
+    bip::managed_mapped_file file(bip::open_or_create, "./shared_memory.bin", mem_size);
+
+    // 在共享内存中分配一个大内存块
+    std::size_t alloc_size = 1024 * 1024 * 1024 * 80LL;
+    void* mem_ptr = file.get_segment_manager()->allocate(alloc_size);
+    if (mem_ptr == nullptr)
+    {
+        perror("Memory allocation failed. Reason");
+        exit(EXIT_FAILURE);
+    }
+
+    // read
+    std::string filename = "./dataset/bigann_learn.bvecs";
+    off_t file_size = 0LL;
+    u_char *file_map = nullptr;
+    std::vector<std::vector<float>>* data = new (mem_ptr) std::vector<std::vector<float>>();
+    mmap_read_bvecs(filename, file_map, file_size, data);
+
+    // output
+    auto vec_num = data->size();
+    auto vec_dim = (*data)[0].size();
+    std::cout << "vector number: " << vec_num << std::endl;
+    std::cout << "vector dimension: " << vec_dim << std::endl;
+
+    // 释放分配的大内存块
+    file.get_segment_manager()->deallocate(mem_ptr);
+    release_mmap(file_map, file_size);
+
+    return 0;
+}
+```
+
+### 3.4 mimalloc_test
+
+使用 `mimalloc` 内存分配器分配虚拟内存。
+
+```cpp
+#include "mmap_read_bvecs.cpp"
+
+int main() 
+{
+    std::string filename = "./dataset/bigann_learn.bvecs";
+    
+    // 分配未对齐内存
+    size_t mem_size = 1024 * 1024 * 1024 * 65LL;
+    auto v_mem = mi_malloc(mem_size);
+
+    // 读入数据
+    u_char *file_map = nullptr;
+    off_t file_size = 0LL;
+    // 在虚拟内存中开辟空间存储
+    std::vector<std::vector<float>>* data = new (v_mem) std::vector<std::vector<float>>();
+    mmap_read_bvecs(filename, file_map, file_size, data);
+
+    // output
+    auto vec_num = data->size();
+    auto vec_dim = (*data)[0].size();
+    std::cout << "vector number: " << vec_num << std::endl;
+    std::cout << "vector dimension: " << vec_dim << std::endl;
+
+    // 释放内存
+    mi_free(v_mem);
+    mi_stats_print(NULL);
+    // 手动触发一次垃圾回收
+    mi_collect(true);
+
+    return 0;
+}
+```
+
+### 
