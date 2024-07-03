@@ -268,4 +268,15 @@ std::vector<std::vector<float>>* data = new(v_mem) std::vector<std::vector<float
 
 其中 v_mem 为指针，指向预分配的内存地址。
 
+## 保存已访问的数据
+
+哈希表 unordered_set
+
+```cpp
+std::unordered_set<ListNode*> visited;
+
+if (visited.count(p)) { ... }
+visited.insert(p);
+```
+
 ## 

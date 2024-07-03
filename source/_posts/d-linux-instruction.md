@@ -101,71 +101,58 @@ date: 2023-10-22 18:01:26
 
 ### 安装 deb 软件包
   
-  ```bash
-  # deb package
-  sudo dpkg -i *.deb
-  ```
+```bash
+# deb package
+sudo dpkg -i *.deb
+```
   
 ### vim
   
-  ```bash
-  # vim
-  sudo apt install gedit vim
-  ```
+```bash
+# vim
+sudo apt install gedit vim
+```
 
 ### 主菜单编辑软件
   
-  ```bash
-  # 主菜单编辑软件
-  sudo apt install alacarte
-  ```
+```bash
+# 主菜单编辑软件
+sudo apt install alacarte
+```
 
 ### gnome-tweak-tool
   
-  ```bash
-  # gnome-tweak-tool
-  sudo apt install gnome-tweak-tool
-  ```
+```bash
+# gnome-tweak-tool
+sudo apt install gnome-tweak-tool
+```
   
 ### copyQ
   
-  ```bash
-  # copyQ
-  sudo add-apt-repository ppa:hluk/copyq
-  sudo apt update
-  sudo apt install copyq
-  ```
+```bash
+# copyQ
+sudo add-apt-repository ppa:hluk/copyq
+sudo apt update
+sudo apt install copyq
+```
   
 ### indicator & stickynotes
 
-  ```bash
-  # indicator stickynotes
-  sudo add-apt-repository ppa:umang/indicator-stickynotes
-  sudo apt-get update
-  sudo apt-get install indicator-stickynotes
-  ```
+```bash
+# indicator stickynotes
+sudo add-apt-repository ppa:umang/indicator-stickynotes
+sudo apt-get update
+sudo apt-get install indicator-stickynotes
+```
   
 ### jetbrains IDE
 
-  ```bash
-  # jetbrains (idea & clion)
-  sudo snap install intellij-idea-ultimate --classic
-  sudo snap install clion --classic
-  ```
-  
-### vscode
+```bash
+# jetbrains (idea & clion)
+sudo snap install intellij-idea-ultimate --classic
+sudo snap install clion --classic
+```
 
-  ```bash
-  # vscode
-  sudo dpkg -i code.deb
-  ```
-  
-### edge
-  
-  ```bash
-  # ms-edge
-  sudo dpkg -i edge.deb
-  ```
 
 ### systemback
 
@@ -177,13 +164,19 @@ date: 2023-10-22 18:01:26
   sudo apt-get install systemback
   ```
 
+### timeshift
+
+```bash
+sudo apt install timeshift
+```
+
 ### nvm, node
 
-  ```bash
-  # 通过 nvm 安装 nodejs npm
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
-  nvm install node
-  ```
+```bash
+# 通过 nvm 安装 nodejs npm
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.35.3/install.sh | bash
+nvm install node
+```
 
 ### conda
 
@@ -224,17 +217,23 @@ date: 2023-10-22 18:01:26
   ​​​​​​​screen -S <name> -X quit
   ```
 
+### VirtualBox
+
+```bash
+sudo apt install virtualbox
+sudo apt install virtualbox-ext-pack
+```
 
 
 ## 常用命令 / 解决方案
 
 ### 显示内存
 
-    ```bash
-    free
-    free -m
-    free -h
-    ```
+```bash
+free
+free -m
+free -h
+```
 
 ### screen
 

@@ -67,8 +67,8 @@ public:
 ```cpp
 class Solution {
     public ListNode reverseList(ListNode head) {
-        ListNode ans = null;
-        for (ListNode x = head; x != null; x = x.next) {
+        ListNode ans = nullptr;
+        for (ListNode x = head; x != nullptr; x = x.next) {
             // 新建 node 的 next 域指向当前 node
             // ans 指向新建 node
             // 以此达到反转指针的目的
