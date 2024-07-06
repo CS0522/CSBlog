@@ -279,4 +279,35 @@ if (visited.count(p)) { ... }
 visited.insert(p);
 ```
 
-## 
+## 构造 vector：通过其他 STL 容器初始化一个 vector
+
+```cpp
+// eg.1
+std::unordered_set<int> us;
+// ...
+return vector<int>(us.begin(), us.end());
+
+// eg.2
+int arr[5] = {1, 2, 3, 4, 5};
+return vector<int>(arr, arr+5);
+```
+
+vector 构造函数：
+```cpp
+// 1
+vector( const Allocator& = Allocator() );
+
+// 2
+vector( size_type n,constT& value = T(), const Allocator& = Allocator() );
+
+// 3
+// 上面例子中用的这个构造函数
+// 利用迭代器
+template <class InputIterator>  
+vector ( InputIterator first, InputIterator last, const Allocator& = Allocator() );
+
+// 4
+vector ( const vector<T,Allocator>& x );
+```
+
+##
