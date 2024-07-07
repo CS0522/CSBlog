@@ -27,9 +27,11 @@ date: 2023-10-22 00:00:00
 
 ### 安装 Hexo
 准备环境：
-- nvm（参考 Node & Vue 文档）
-- node.js（参考 Node & Vue 文档，版本 > 16.15.0）
-- git
+* nvm（参考 Node & Vue 文档）
+
+* node.js（参考 Node & Vue 文档，版本 > 16.15.0）
+
+* git
 
 npm 安装 Hexo：
 ```bash
