@@ -310,4 +310,30 @@ vector ( InputIterator first, InputIterator last, const Allocator& = Allocator()
 vector ( const vector<T,Allocator>& x );
 ```
 
-##
+## 获取文件大小
+
+```cpp
+// 获取文件信息
+int fd = open("...");
+struct stat fs;
+// 获取失败
+if (fstat(fd, &fs) == -1) {
+    perror("Get file information filed. Reason");
+    close(fd);
+    exit(EXIT_FAILURE);
+}
+// 文件大小
+off_t file_size = fs.st_size;
+std::cout << "File size: " << file_size << std::endl;
+```
+
+通过 `seekg()` 和 `tellg()`：
+
+```cpp
+std::ifstream in("...", std::ios::binary);
+in.seekg(0, std::ios::end);
+std::ios::pos_type ss = in.tellg();
+size_t fsize = (size_t)ss;
+```
+
+## 

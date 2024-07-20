@@ -224,6 +224,39 @@ sudo apt install virtualbox
 sudo apt install virtualbox-ext-pack
 ```
 
+### EasyConnect
+
+EasyConnect 在 Ubuntu 20.04 以上因为依赖问题无法正常打开。
+
+```bash
+# 安装软件
+sudo dpkg -i ./EasyConnect.deb
+
+# 查看安装路径
+dpkg -L easyconnect
+# /usr/share/sangfor/EasyConnect
+
+# cd 
+cd /usr/share/sangfor/EasyConnect
+sudo su
+
+# 查看依赖
+ldd ./EasyConnect | grep pango
+
+# 下载缺失依赖文件
+# http://kr.archive.ubuntu.com/ubuntu/pool/main/p/pango1.0/
+# libpangocairo-1.0-0_1.40.14-1_amd64.deb
+# libpangoft2-1.0-0_1.40.14-1_amd64.deb
+# libpango-1.0-0_1.40.14-1_amd64.deb
+
+# 对这三个文件进行解压缩，提取出 data.tra.xz -> usr -> lib -> x86_64-linux-gnu 下面的所有文件
+# 将得到的 6 个文件全部复制到安装目录下
+cp ./* /usr/share/sangfor/EasyConnect
+
+# 启动 EasyConnect
+```
+
+
 
 ## 常用命令 / 解决方案
 
@@ -316,6 +349,177 @@ sudo vim /etc/ld.so.conf
 
 # 对配置文件 /etc/ld.so.conf 中定义的路径下的程序库重新建立必要的链接
 sudo ldconfig
+```
+
+### 挂载、卸载 img 镜像
+
+使用 `mount`、`umount` 命令。挂载 `nsg_server.img` 文件为例子。
+
+```bash
+# NSG_SERVER.img
+# 1. 查看 NSG_SERVER.img 的分区情况，是为了看需要挂载哪个分区
+fdisk ./NSG_SERVER.img
+# result: 
+# Disk NSG_SERVER.img：20 GiB，21474836480 字节，41943040 个扇区
+# 单元：扇区 / 1 * 512 = 512 字节
+# 扇区大小(逻辑/物理)：512 字节 / 512 字节
+# I/O 大小(最小/最佳)：512 字节 / 512 字节
+# 磁盘标签类型：gpt
+# 磁盘标识符：D85F133D-8179-4557-86F6-6DF45C769770
+# 设备             起点     末尾     扇区 大小 类型
+# NSG_SERVER.img1  2048     4095     2048   1M BIOS 启动
+# NSG_SERVER.img2  4096 41940991 41936896  20G Linux 文件系统
+
+# 2. 挂载 .img2 分区到本机 /mnt/nsg_server
+# 注意其中 offset = 4096 * 512，因为扇区大小为 512 字节
+mkdir /mnt/nsg_server
+sudo mount -o loop,offset=2097152 NSG_SERVER.img /mnt/nsg_server
+
+# 3. 卸载 .img2 分区
+sudo umount /mnt/nsg_server
+```
+
+### VirtualBox 挂载共享文件夹
+
+在本地中创建共享的文件夹，我的共享文件夹为：`/mnt/nsg_server/home/icecream`，想要挂载到虚拟机中的 `/mnt/nsg_server` 中。
+
+本地电脑中设置共享文件夹路径（如上）以及共享文件夹名称 `icecream`，注意**不要勾选自动挂载**，会出现权限问题；
+
+虚拟机中：
+
+```bash
+# 创建挂载点
+sudo mkdir /mnt/nsg_server
+
+# 挂载命令
+# mount -t vboxsf <共享文件夹名称> <挂载目录>
+sudo mount -t vboxsf icecream /mnt/nsg_server/
+
+# 开机自动挂载
+sudo gedit /etc/sftab
+
+# 文末添加
+# <共享文件夹名称> < 挂载目录> vboxsf defaults 0 0
+icecream /mnt/nsg_server/ vboxsf defaults 0 0
+```
+
+### vim 操作
+
+```bash
+# 显示行号
+:set number 
+
+# 删除单行
+dd
+:<num>d
+
+# 删除多行
+:<begin><end>d
+```
+
+### img、vdi 格式转换
+
+通过 VirtualBox 的 VBoxChange 工具进行转换
+
+```bash
+# vdi to img
+VBoxManage clonehd test.vdi test.img --format raw
+
+# img to vdi 
+VBoxManage convertfromraw test.img test.vdi --format vdi
+```
+
+
+### 彻底删除 Snap
+
+```bash
+# 1. 删掉所有的已经安装的 Snap 软件
+for p in $(snap list | awk '{print $1}'); do
+  sudo snap remove $p
+done
+# 直到出现：No snaps are installed yet. Try 'snap install hello-world'.
+
+# 2. 删除 Snap 的 Core 文件
+sudo systemctl stop snapd
+sudo systemctl disable --now snapd.socket
+
+for m in /snap/core/*; do
+   sudo umount $m
+done
+
+# 3. 删除 Snap 的管理工具
+sudo apt autoremove --purge snapd
+
+# 4. 删除 Snap 的目录
+rm -rf ~/snap
+sudo rm -rf /snap
+sudo rm -rf /var/snap
+sudo rm -rf /var/lib/snapd
+sudo rm -rf /var/cache/snapd
+```
+
+
+### 关闭 systemd-resolved 
+
+自启动且会占用 53 端口。
+
+```bash
+# 停用 systemd-resolved 并取消开机自动启动
+sudo systemctl disable systemd-resolved
+sudo systemctl stop systemd-resolved
+
+# 修改 NetworkManager 配置，让它能自动获取 dns
+sudo vim /etc/NetworkManager/NetworkManager.conf
+
+# 添加一行 dns=default
+dns=default
+# [main]
+# plugins=ifupdown,keyfile
+# dns=default
+# [ifupdown]
+# managed=false
+# [device]
+# wifi.scan-rand-mac-address=no
+
+# 删除 /etc/resolv.conf
+sudo unlink /etc/resolv.conf
+sudo touch /etc/resolv.conf
+
+# 重启 NetworkManager
+sudo systemctl restart NetworkManager
+
+# 查看 /etc/resolv.conf 中新的 dns
+cat /etc/resolv.conf
+```
+
+
+### 重装网卡
+
+重装网卡后还需要修改 DNS。
+
+```bash
+# 查看网卡名
+ifconfig -a
+# ens3
+
+sudo dhclient <nic_name>
+sudo ifconfig <nic_name>
+```
+
+
+### 设置 DNS
+
+```bash
+# 1. 修改 /etc/systemd/resolved.conf
+sudo vim /etc/systemd/resolved.conf
+# 修改：DNS=114.114.114.114 8.8.8.8
+
+# 2. 重启 systemd-resolved
+systemctl restart systemd-resolved
+systemctl enable systemd-resolved
+ 
+mv /etc/resolv.conf  /etc/resolv.conf.bak
+ln -s /run/systemd/resolve/resolv.conf /etc/
 ```
 
 ### 
