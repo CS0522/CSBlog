@@ -522,4 +522,23 @@ mv /etc/resolv.conf  /etc/resolv.conf.bak
 ln -s /run/systemd/resolve/resolv.conf /etc/
 ```
 
-### 
+### 文件分割 sh 脚本
+
+已知文件大小，利用 `dd` 命令
+
+```sh
+# Create split_file.sh: 
+# 获取文件大小
+size=$(stat -c%s "/dataset/bigann/bigann_learn.bvecs")
+
+# 计算一半的大小
+half=$((size / 2))
+
+# 提取前半部分
+dd if=filename of=part1.bvecs bs=1 count=$half
+
+# 提取后半部分
+dd if=filename of=part2.bvecs bs=1 skip=$half
+```
+
+###

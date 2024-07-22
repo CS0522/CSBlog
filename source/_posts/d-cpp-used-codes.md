@@ -336,4 +336,31 @@ std::ios::pos_type ss = in.tellg();
 size_t fsize = (size_t)ss;
 ```
 
+## 多态中父类析构调用子类析构
+
+将析构函数声明为虚函数实现。
+
+```cpp
+class A
+{
+public:
+    explicit A() {}
+    virtual ~A() { cout << "~A()" << endl; }
+};
+
+class B : public A
+{
+public:
+    explicit B() {}
+    virtual ~B() { cout << "~B()" << endl; }
+};
+
+A *a = new B();
+a->~A();
+
+// result
+// print: ~B()
+//        ~A()
+```
+
 ## 

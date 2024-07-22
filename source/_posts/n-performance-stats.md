@@ -2,14 +2,12 @@
 title: 【学习笔记】Linux C++ 性能分析
 tags:
   - C++
-  - valgrind
   - Linux
 toc: true
 languages:
   - zh-CN
 categories:
   - 学习笔记
-  - valgrind
 comments: false
 cover: false
 date: 2024-05-09 17:15:54
@@ -44,9 +42,13 @@ valgrind [valgrind-options] your-prog [your-prog-options]
 
 valgrind-options:
 * `--tool=`: choose which tool to use, like `--tool=challvalgrind`
+
 * `--trace-children=<yes|no>`: 跟踪到子进程里去，默认请况不跟踪
+
 * `--log-file=filename`: 将输出的信息写入到 `filename.PID` 的文件里
+
 * `--log-file-exactly=filename`: 指定就输出到 `filename` 文件
+
 * `--separate-threads=yes`: 多线程
 
 ### Callgrind 使用
@@ -210,3 +212,31 @@ Call Graph 字段含义：
   # 可以简写
   prof2dot gprof.profile | dot -Tpng -o gprof.png
   ```
+
+
+## strace 
+
+### strace 使用
+
+```bash
+strace -f -o output.log <program> [args]
+
+strace -f -o test_nndescent_bm.log ./build/tests/test_nndescent_bm /home/frank/Workspace/Test/big_memory/dataset/bigann_learn_small.bvecs ./knn_graph/bigann_learn_small.graph 200 200 20 20 100
+
+strace -f -o test_nndescent_bm.log -e trace=memory <program>
+```
+
+
+## gdb
+
+### gdb 使用
+
+```bash
+gdb [--args] <program> [args]
+
+# 编译时开启 -g 参数，或者 -DCMAKE_BUILD_TYPE=Debug
+gdb --args build/tests/test_nndescent_bm ../WADG_ANN/dataset/bigann/bigann_learn.bvecs ./knn_graph/bigann_learn.graph 200 200 20 20 100
+
+(gdb)run
+(gdb)bt
+```
