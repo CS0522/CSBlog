@@ -365,3 +365,47 @@ list(enumerate(seasons, start=1))       # 下标从 1 开始
 # output
 [(1, 'Spring'), (2, 'Summer'), (3, 'Fall'), (4, 'Winter')]
 ```
+
+## numpy 初始化生成相同元素值的数组
+
+使用 `numpy.full()` 函数
+
+```python
+print(np.full(3, 100, dtype = np.int32))
+# [100 100 100]
+
+print(np.full(3, np.pi))
+# [ 3.14159265  3.14159265  3.14159265]
+
+print(np.full((2, 3), 100))
+# [[100 100 100]
+#  [100 100 100]]
+
+print(np.full((2, 3), np.pi))
+# [[ 3.14159265  3.14159265  3.14159265]
+#  [ 3.14159265  3.14159265  3.14159265]]
+```
+
+## numpy 数组添加一列/一行
+
+使用 `numpy.insert()` 函数
+
+```python
+import numpy as np
+a = np.array([[1,2,3],[4,5,6],[7,8,9]]) 
+b = np.array([2,5,8])
+# 2代表下标，这里代表插入到第三列，axis=1，插入一列，axis=0，插入一行
+print(np.insert(a, 2, b, axis=1))
+#插入多列
+c = np.array([[1,4,7],[2,5,8]]).T
+print(np.insert(a, [0,1], c, axis=1))
+ 
+输出：
+[[1 2 2 3]
+ [4 5 5 6]
+ [7 8 8 9]]
+ 
+[[1 1 2 2 3]
+ [4 4 5 5 6]
+ [7 7 8 8 9]]
+```

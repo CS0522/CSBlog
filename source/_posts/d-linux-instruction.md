@@ -541,4 +541,18 @@ dd if=filename of=part1.bvecs bs=1 count=$half
 dd if=filename of=part2.bvecs bs=1 skip=$half
 ```
 
-###
+### sftp 大文件断点续传
+
+```bash
+# sftp user@hostname
+sftp root@hust-server
+
+# cd 到指定目录
+sftp> cd /root.....
+
+# -a 表示使用增量续传的方式
+sftp> get -a nsg_100G.img
+
+# 上传
+sftp> put -a nsg_100G.img
+```
