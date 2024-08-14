@@ -281,6 +281,8 @@ free -h
   
   # 进入 screen
   screen -r <name>
+  # 状态显示 Attached，但无法进入
+  screen -D -r <session-id>
   
   # 退出当前 screen
   # 在当前 screen 下
