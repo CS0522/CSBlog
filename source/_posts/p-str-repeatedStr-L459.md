@@ -24,6 +24,8 @@ date: 2024-08-15 12:08:22
 ## 思路
 
 * 多次循环 `KMP` 算法，重点在于如何取子字符串作为模式串进行匹配，减少时间开销。
+* 判断字符串 s 是否由重复子串组成，只要两个 s 拼接在一起，里面还出现一个 s 的话，就说明是由重复子串组成。在判断 s + s 拼接的字符串里是否出现一个 s 的的时候，要刨除 s + s 的首字符和尾字符，这样避免在 s + s 中搜索出原来的 s，我们要搜索的是中间拼接出来的 s。
+* 数学推理：利用 next 数组
 
 ## 学习点
 
@@ -171,6 +173,39 @@ public:
 
     bool repeatedSubstringPattern(string s) {
         return kmp(s + s, s);
+    }
+};
+```
+
+利用 next 数组：
+
+```cpp
+class Solution {
+public:
+    void getNext (int* next, const string& s){
+        next[0] = -1;
+        int j = -1;
+        for(int i = 1;i < s.size(); i++){
+            while(j >= 0 && s[i] != s[j + 1]) {
+                j = next[j];
+            }
+            if(s[i] == s[j + 1]) {
+                j++;
+            }
+            next[i] = j;
+        }
+    }
+    bool repeatedSubstringPattern (string s) {
+        if (s.size() == 0) {
+            return false;
+        }
+        int next[s.size()];
+        getNext(next, s);
+        int len = s.size();
+        if (next[len - 1] != -1 && len % (len - (next[len - 1] + 1)) == 0) {
+            return true;
+        }
+        return false;
     }
 };
 ```
