@@ -151,6 +151,18 @@ date: 2024-06-09 21:06:05
 ### 用队列的情况
 
 * 先进先出，后进后出
+* 队列的模板用法：
+  ```cpp
+  qe.push(a);
+  while (!qe.empty())
+  {
+    auto tmp = qe.front();
+    qe.pop();
+    // 处理
+    // ...
+    qe.push(...);
+  }
+  ```
 
 
 ## 递归
@@ -163,4 +175,39 @@ date: 2024-06-09 21:06:05
 
 * 确定单层递归的逻辑：确定每一层递归需要处理的信息。在这里也就会重复调用自己来实现递归的过程。
 
-## 
+## 二叉树
+
+### 二叉树的深度遍历
+
+使用（栈）递归法，或者迭代法。递归法更简单。
+
+### 二叉树的广度（层序）遍历
+
+使用队列，模板：
+
+```cpp
+class Solution {
+public:
+    vector<vector<int>> levelOrder(TreeNode* root) {
+        queue<TreeNode*> que;
+        if (root != NULL) que.push(root);
+        vector<vector<int>> result;
+        while (!que.empty()) {
+            int size = que.size();
+            vector<int> vec;
+            // 这里一定要使用固定大小 size，不要使用 que.size()，因为 que.size 是不断变化的
+            for (int i = 0; i < size; i++) {
+                TreeNode* node = que.front();
+                que.pop();
+                vec.push_back(node->val);
+                if (node->left) que.push(node->left);
+                if (node->right) que.push(node->right);
+            }
+            result.push_back(vec);
+        }
+        return result;
+    }
+};
+```
+
+### 
