@@ -1,5 +1,5 @@
 ---
-ttitle: 【刷题日记】栈和队列-前 K 个高频元素-L347-Medium
+title: 【刷题日记】栈和队列-前 K 个高频元素-L347-Medium
 tags:
   - C++
   - 刷题
