@@ -8,6 +8,7 @@ languages:
   - zh-CN
 categories:
   - 学习笔记
+  - C++
 comments: false
 cover: false
 date: 2024-05-09 17:15:54

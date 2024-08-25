@@ -112,7 +112,7 @@ NVMe 旨在定义主机软件如何通过 PCI Express (PCIe) 总线与非易失�
 
 NVMe 协议并非局限于在服务器内部连接本地闪存驱动器，它还可通过网络使用。在网络环境内使用时，网络“架构”支持存储和服务器元素之间的任意连接。NVMe-oF 支持组织创建超高性能存储网络，其时延能够媲美直连存储。因而可在服务器之间按需共享快速存储设备。
 
-![NVMe-oF 传输协议](https://ask.qcloudimg.com/http-save/yehe-1419448/e99d89fe79397560d65e0f51d680e2f6.png)
+![NVMe-oF 传输协议](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-nvmeof-01/nvmeof-trans-protocol.png)
 
 * NVMe over TCP
   
@@ -125,13 +125,13 @@ NVMe 协议并非局限于在服务器内部连接本地闪存驱动器，它还
 
 ### NVMe-oF 整体架构
 
-![](./nmve-of.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-nvmeof-01/nmve-of.png)
 
 NVMe Host(Controller)-side Transport Abstraction 这两层便是 NVMe over Fabrics 协议的实现层。该协议只是一个用于 NVMe Transport 的抽象层而已，它并不实现真正的命令和数据传输功能，它只是为命令和数据传输定义了统一的规范，因此该协议只是“指导方针”。它是构建在 Fabrics 之上的，即它并不关心实际的 Fabrics 到底是什么，它只是提供了 Fabrics 通用的对接 NVMe 的接口，完成了对 NVMe 接口和命令在各种 Fabrics 而非只是 PCIe 上（NVMe Base 协议只涉及 PCIe 这一种 Fabric）的拓展。因此，为了使 NVMe 可以架构于不同的 Fabric 之上，各 Fabric 还需开发专用的功能实现层，真正实现基于此 Fabric 的数据传输功能，并完成和 Transport Abstraction 抽象层（即 NVMe over Fabrics 协议的实现层）的对接以使得传输抽象层可以调用到这些函数。
 
 ### NVMe over RDMA
 
-![](./nmve-over-rdma.png)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-nvmeof-01/nmve-over-rdma.png)
 
 NVMe Host 和 NVMe Subsystem Controller 是 NVMe Base 协议扩展到 NVMe over Fabrics 的部分；NVMe Host(Controller)-side Transport Abstraction 则是 NVMe over Fabrics 传输抽象层的实现。RoCE 层则是支持 RoCE 技术的网卡及相关驱动和 RDMA 协议栈，而不论 InfiniBand、RoCE 或者 iWarp 何种具体的 RDMA 实现形式，都约定提供统一的操作接口，**RDMA Verbs 便是 RDMA 技术向上层提供的接口**。NVMe RDMA 则是实现将 RDMA 的接口 Verbs 和 NVMe 对接的关键粘合层，简言之，其作用是将 NVMe Transport Abstraction 传输抽象层提供的传输接口可以调用到下层 RDMA 提供的传输接口（即 verbs）。
 
