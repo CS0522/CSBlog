@@ -1,13 +1,14 @@
 ---
-title: 【学习笔记】NVMe-oF 学习（一）：基础知识
+title: 【学习笔记-存储】NVMeoF（一）：基础知识
 tags:
+  - 存储
   - NVMe
 toc: true
 languages:
   - zh-CN
 categories:
   - 学习笔记
-  - NVMe
+  - 存储
 comments: false
 cover: false
 date: 2024-08-19 21:44:02
