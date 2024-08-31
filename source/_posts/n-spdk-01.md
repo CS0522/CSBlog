@@ -1,8 +1,8 @@
 ---
-title: 【学习笔记-存储】SPDK（一）
+title: 【学习笔记-存储】spdk（一）基础知识
 tags:
   - 存储
-  - SPDK
+  - spdk
 toc: true
 languages:
   - zh-CN
@@ -14,7 +14,7 @@ cover: false
 date: 2024-08-27 13:10:46
 ---
 
-
+spdk 相关知识了解和学习。
 
 <!-- more -->
 
