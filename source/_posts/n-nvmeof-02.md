@@ -35,7 +35,8 @@ sudo sh ./rdma-setup.sh
 # rdma-setup.sh
 
 #!/bin/bash
-# rdma startup
+# @CS0522
+# rdma setup
 # run with root
 # DOING:
 # 1. Install tools

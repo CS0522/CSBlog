@@ -1,5 +1,5 @@
 ---
-title: 【学习笔记-存储】SPDK（二）：SPDK 安装与部署
+title: 【学习笔记-存储】SPDK（二）：SPDK NVMe over RDMA 部署
 tags:
   - 存储
   - SPDK
@@ -14,17 +14,20 @@ cover: false
 date: 2024-08-29 15:46:24
 ---
 
-记录 spdk 的安装和部署过程。
+记录 SPDK NVMe over RDMA 的部署过程。
 
 <!-- more -->
 
 ## 环境准备
 
-* Ubuntu 22.04 虚拟机
+* Ubuntu 22.04 虚拟机 x2
+    * **dev1，作为 Target 端，ip：192.168.159.142**
+    * **dev2，作为 Host 端，ip：192.168.159.143**
+    * dev2 可以在 dev1 环境准备完成后进行 clone
 * 2 块虚拟硬盘：
     * SATA：用于安装 Ubuntu
     * NVMe：用于绑定 spdk
-* NVMe 硬盘不需要挂载和格式化，`lsblk` 结果如下：
+* NVMe 硬盘**不需要挂载和格式化**，`lsblk` 结果如下：
   ```bash
   # lsblk
   # ...
@@ -33,12 +36,12 @@ date: 2024-08-29 15:46:24
   ├─sda2    8:2    0   513M  0 part /boot/efi
   └─sda3    8:3    0  59.5G  0 part /var/snap/firefox  common/ host-hunspell
                                     /
-  nvme0n1 259:0    0    50G  0 disk 
+  nvme0n1 259:0    0    20G  0 disk 
   ```
 
 ## 文件准备
 
-需要下载的文件：
+需要下载的文件：（严格控制版本，不同版本可能会导致很多错误）
 
 * [spdk-24.05.x.zip](https://codeload.github.com/spdk/spdk/zip/refs/heads/v24.05.x)
 * [isa-l_crypto-08297dc3e76d65e1bad83a9c9f9e49059cf806b5.zip](https://codeload.github.com/intel/isa-l_crypto/zip/08297dc3e76d65e1bad83a9c9f9e49059cf806b5)
@@ -94,7 +97,7 @@ git submodule update --init
 
 ```bash
 # 安装各种依赖包
-# -r: rdma
+# -r: 带 RDMA
 sudo ./scripts/pkgdep.sh -r
 # 出于网络原因，可以修改 sh 脚本，添加临时源
 # scripts/pkgdep/ubuntu.sh 下：
@@ -112,7 +115,9 @@ pip3 install tabulate -i https://pypi.doubanio.com/simple
 
 ### 打上 patch、修改代码
 
-位于 `lib/log/log.c`。添加和修改以下代码：
+开发者说明 `master` 分支已经整合该 `patch`，`v24.05.x` 还未整合。
+
+位于 `lib/log/log.c`。添加和修改以下代码（共 3 处）：
 
 ```c
 // lib/log.log.c
@@ -235,3 +240,158 @@ nvme0n1 259:0    0    50G  0 disk
 ```
 
 再次绑定后测试，出现正确结果则成功。
+
+### 取消绑定
+
+```bash
+./scripts/setup.sh reset
+```
+
+---
+
+## 部署 RDMA Soft-RoCE
+
+参考 {% post_link n-nvmeof-02 %} 部署 RDMA 部分，部署好 RDMA Soft RoCE 软件栈。
+
+仅部署 RDMA 部分，sh 脚本中从 `# 1. config nvme subsystem` 后的代码全部注释掉。
+
+重启后需要重新部署一遍 RDMA 软件栈。
+
+---
+
+这部分结束可以对 dev1 进行克隆。
+
+---
+
+## 配置 SPDK NVMe over RDMA Target 端
+
+Target 端 ip：`192.168.159.142`。
+
+### 运行 nvmeof-setup.sh 脚本部署 RDMA Soft-RoCE
+
+### 绑定 NVMe SSD 设备
+
+```bash
+./scripts/setup.sh
+
+# 正确结果：
+# 0000:0b:00.0 (15ad 07f0): nvme -> uio_pci_generic
+
+# 查看状态
+./scripts/setup.sh status
+
+# 正确结果：
+# Type        BDF      Vendor Device   NUMA      Driver        Device     Block devices
+# NVMe   0000:0b:00.0   15ad   07f0  unknown  uio_pci_generic     -         -
+```
+
+这个 BDF `0000:0b:00.0` 可能会变化，需要记住。
+
+### 创建 NVMe 盘、启动 tgt 并监听
+
+```bash
+# 具体参数代表含义还没完全弄清，可以通过 --help 查询
+
+# 1. 启动 nvmf_tgt 并监听
+build/bin/nvmf_tgt & scripts/rpc.py nvmf_create_transport -t RDMA -u 8192 -i 131072 -c 8192
+
+# 2. 将 NVMe 控制器附加到 SPDK 的块设备层
+# 0000:0b:00.0 是上文的 BDF
+./scripts/rpc.py bdev_nvme_attach_controller -b NVMe1 -t PCIe -a 0000:0b:00.0
+# output:
+# NVMe1n1
+
+# 3. 创建 subsystem
+# cnode1、SPDK00000000000001 可以自定义
+./scripts/rpc.py nvmf_create_subsystem nqn.2016-06.io.spdk:cnode1 -a -s SPDK00000000000001 -d SPDK_Controller1
+
+# 4. 添加 namespace
+./scripts/rpc.py nvmf_subsystem_add_ns nqn.2016-06.io.spdk:cnode1 NVMe1n1
+# NVMe1n1 是 2 中的输出
+
+# 5. 添加监听
+# -a 是本机 ip，-s 是端口，可修改
+./scripts/rpc.py nvmf_subsystem_add_listener nqn.2016-06.io.spdk:cnode1 -t rdma -a 192.168.159.142 -s 4420
+```
+
+--- 
+
+## 配置 SPDK NVMe over RDMA Host 端
+
+Host 端 ip：`192.168.159.143`。
+
+### 运行 nvmeof-setup.sh 脚本部署 RDMA Soft-RoCE
+
+### SPDK 初始化
+
+```bash
+./scripts/setup.sh
+
+# 正确结果：
+# 0000:0b:00.0 (15ad 07f0): nvme -> uio_pci_generic
+```
+
+### 发现 Target 并连接
+
+```bash
+# 发现
+nvme discover -t rdma -a 192.168.159.142 -s 4420
+# output: 
+# =====Discovery Log Entry 0======
+# trtype:  rdma
+# adrfam:  ipv4
+# subtype: nvme subsystem
+# treq:    not required
+# portid:  0
+# trsvcid: 4420
+# subnqn:  nqn.2016-06.io.spdk:cnode1
+# traddr:  192.168.159.142
+# rdma_prtype: not specified
+# rdma_qptype: connected
+# rdma_cms:    rdma-cm
+# rdma_pkey: 0x0000
+
+# 连接
+nvme connect -t rdma -n "nqn.2016-06.io.spdk:cnode1" -a 192.168.159.142 -s 4420
+
+# 查看设备
+nvme list
+
+lsblk
+
+# 都可以看到连接的 nvme 设备
+```
+
+### 简单测试
+
+```bash
+# 用 spdk 自带的 perf 进行测试
+./build/bin/spdk_nvme_perf -r 'trtype:rdma adrfam:IPv4 traddr:192.168.159.142 trsvcid:4420' -q 256 -o 4096 -w randread -t 100
+
+# output:
+# ===== spdk_nvme_perf start =====
+# Initializing NVMe Controllers
+# Attached to NVMe over Fabrics controller at 192.168.159.142:4420: nqn.2016-06.io.spdk:cnode1
+# Controller IO queue size 128, less than required.
+# Consider using lower queue depth or smaller IO size, because IO requests may be queued at the NVMe driver.
+# Associating RDMA (addr:192.168.159.142 subnqn:nqn.2016-06.io.spdk:cnode1) NSID 1 with lcore 0
+# Initialization complete. Launching workers.
+# ========================================================
+#                                                                                                                     Latency(us)
+#Device Information                                                               :       IOPS      MiB/s    Average        min        max
+#RDMA (addr:192.168.159.142 subnqn:nqn.2016-06.io.spdk:cnode1) NSID 1 from core  0:    6091.58      23.80   42033.57    3583.64   87966.63
+#========================================================
+#Total                                                                            :    6091.58      23.80   42033.57    3583.64   87966.63
+```
+
+测试结果图：
+
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-02/spdk-nvmeof-perftest.png)
+
+但不知道为什么我的测试结果性能很低，可能是因为虚拟机的缘故？
+
+### 取消连接
+
+```bash
+nvme disconnect -n "nqn.2016-06.io.spdk:cnode1"
+```

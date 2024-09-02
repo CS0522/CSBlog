@@ -521,7 +521,7 @@ systemctl restart systemd-resolved
 systemctl enable systemd-resolved
  
 mv /etc/resolv.conf  /etc/resolv.conf.bak
-ln -s /run/systemd/resolve/resolv.conf /etc/
+ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
 ```
 
 ### 文件分割 sh 脚本
