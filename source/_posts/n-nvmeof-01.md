@@ -88,6 +88,29 @@ NVMe 是一种协议，而并非外形规格或接口规范。不同于其他存
 
 NVMe 旨在定义主机软件如何通过 PCI Express (PCIe) 总线与非易失性存储器进行通信，适用于各种 PCIe 固态硬盘 (SSD) 。
 
+NVMe 中 Command 执行流程有 8 步，Host 与 Controller 之间用 PCIe TLP 传递信息。
+
+* Host 提交新的 Command。Host 下发一个新 Command时，将其放入 Host 内存中 SQ。
+
+* Host 通知 Controller 提取 Command。Host 把 Command 写入 SQ 之后，此时 Device 并不知道这件事。所以，Host 此时需要给 Controller 发信息，通知 NVMe Controller。这个过程通过更新在 Controller 内部的寄存器 SQ Tail Doorbell 来完成。
+
+* NVMe Controller 从 SQ 提取 Command。取走 Command 之后，需要在 Controller 内部的 SQ Head Pointer 寄存器中更新 Head 所在的位置。NVMe 没有规定 Command 存入队列的执行顺序，Controller 可以一次取出多个 Command 进行批量处理。
+
+* NVMe Controller 执行从 SQ 提取的 Commands。一个队列中的 Command 执行顺序是不固定的（可能导致先提交的请求后处理），涉及到 NVMe Spec定义的命令仲裁机制。执行 Read/Wirte Command 时，这个过程也会与 Host Memory 进行数据传递。
+
+* NVMe Controller 将 Commands 的完成状态写入 CQ。此时，Controller 需要更新 CQ Tail Pointer 寄存器。
+
+* NVMe Controller 通知 Host 检查 Commands 的完成状态。Controller 通过发送一个中断信息告知 Host 已执行完毕。
+
+* Host 检查 CQ 中的 Completion 信息。
+
+* Host 告知 Controller 已处理完成 Completion 信息。此时，Host 更新 Controller 内部的 CQ Head Doorbell。告知 Controller 处理完毕。
+
+流程示意图：
+
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-nvmeof-01/nvme-command-flow.png)
+
+
 ### NVMe 技术概述
 
 [NVMe系列专题之一：NVMe技术概述](https://mp.weixin.qq.com/s?__biz=MzIwNTUxNDgwNg==&mid=2247484348&idx=1&sn=1fd3356c6cd9fee9492dcc7d6eb30345&chksm=972ef2e5a0597bf3190c7e5d7717e25ef3a5d83a1b6d7a20f8c4adb1beafc4372f1d79288dd7&scene=21#wechat_redirect)
