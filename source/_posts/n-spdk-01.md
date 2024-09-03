@@ -24,6 +24,8 @@ SPDK 存储性能开发套件（Storage Performance Development Kit）—— 针
 
 是 Intel 发布的，提供了一整套工具和库，以实现高性能、扩展性强、全用户态的存储应用程序。它是继 DPDK 之后，Intel 在存储领域推出的又一项颠覆性技术，旨在大幅缩减存储 I/O 栈的软件开销，从而提升存储性能，可以说它就是为了存储性能而生。
 
+SPDK 的基础是**用户态、轮询、异步、无锁 NVMe 驱动**。这提供了从用户空间应用程序直接访问 SSD 的零拷贝、高度并行的访问。
+
 ---
 
 ## SPDK 引入目的和优势
@@ -104,4 +106,8 @@ SPDK 主要运用了两项关键技术：**用户态 I/O（UI/O）和轮询（po
 
 ---
 
-## 未完待续
+## SPDK hello_world 示例分析
+
+源代码位于 `examples/nvme/hello_world` 下，可执行文件位于 `build/examples/hello_world` 下。通过 `hello_world` 入门 SPDK 的运行流程，了解 SPDK 用户态驱动的主要工作流程和方式。
+
+参考文章 [spdk 入门 hello_world 源码解析](https://blog.csdn.net/wade1010/article/details/128782710)

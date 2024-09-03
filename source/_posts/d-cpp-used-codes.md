@@ -363,4 +363,68 @@ a->~A();
 //        ~A()
 ```
 
+## barrier 方式的无锁线程同步
+
+`Linux` 中提供了多种同步机制，其中使用 `barrier` 是多线程之间进行同步的方法之一。
+
+假设多个线程约定一个栅栏，只有当所有的线程都达到这个栅栏时，栅栏才会放行，否则到达此处的线程将被阻塞。
+
+在代码中，当所有 `thread` 都执行到 `barrier_wait()` 后，才继续执行后续代码。
+
+```cpp
+#include <stdio.h>
+#include <time.h>
+#include <stdlib.h>
+#include <string.h>
+#include <pthread.h>
+#include <unistd.h>
+
+pthread_barrier_t barrier;
+
+void* initor(void* args) {
+	printf("---------------thread init work(%d)--------------\n", time(NULL));
+	//模拟初始化工作。
+	sleep(3);
+	//到达栅栏
+	pthread_barrier_wait(&barrier);
+	printf("--------------thread start work(%d)--------------\n", time(NULL));
+	sleep(3);
+	printf("--------------thread stop work(%d)--------------\n", time(NULL));
+	return NULL;
+}
+
+int main(int argc, char* argv[]) {
+  	//初始化栅栏，该栅栏等待两个线程到达时放行
+	pthread_barrier_init(&barrier, NULL, 2);
+	printf("**************main thread barrier init done****************\n");
+	pthread_t pid;
+	pthread_create(&pid, NULL, &initor, NULL);
+	printf("**************main waiting(%d)********************\n", time(NULL));
+	//主线程到达，被阻塞，当初始化线程到达栅栏时才放行。
+  	pthread_barrier_wait(&barrier);
+    printf("***************main after barrier wait(%d)***************\n", time(NULL));
+	pthread_barrier_destroy(&barrier);
+	printf("***************main start to work(%d)****************\n", time(NULL));
+	sleep(10);
+	pthread_join(pid, NULL);
+	printf("***************thread complete(%d)***************\n", time(NULL));
+
+    system("pause");
+	return 0;
+}
+```
+
+输出结果：
+
+```bash
+**************main thread barrier init done****************
+**************main waiting(1725351103)********************
+---------------thread init work(1725351103)-------------- 
+--------------thread start work(1725351106)--------------
+***************main after barrier wait(1725351106)***************
+***************main start to work(1725351106)****************    
+--------------thread stop work(1725351109)--------------
+***************thread complete(1725351116)***************
+```
+
 ## 

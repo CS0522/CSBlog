@@ -69,17 +69,17 @@ NVMe 只适用于 SSD（SSD 和主板也要支持 NVMe）。AHCI 则适用于机
 
 [RDMA 技术浅析](https://chenxiaoweii.github.io/2017/02/27/RDMA/)
 
-RDMA是基于消息的传输协议，数据传输都是异步操作。 RDMA操作其实很简单，可以理解为：
+RDMA 是基于消息的传输协议，数据传输都是异步操作。 RDMA 操作其实很简单，可以理解为：
 
-* Host提交工作请求(WR)到工作队列(WQ): 工作队列包括发送队列(SQ)和接收队列(CQ)。工作队列的每一个元素叫做WQE, 也就是WR。
-* Host从完成队列(CQ) 中获取工作完成(WC): 完成队列里的每一个叫做CQE, 也就是WC。
-* 具有RDMA引擎的硬件(hardware)就是一个队列元素处理器。RDMA硬件不断地从工作队列(WQ)中去取工作请求(WR)来执行，执行完了就给完成队列(CQ)中放置工作完成(WC)。从生产者-消费者的角度理解就是：
-  * Host生产WR, 把WR放到WQ中去
-  * RDMA硬件消费WR
-  * RDMA硬件生产WC, 把WC放到CQ中去
-  * Host消费WC
+* Host 提交工作请求（WR）到工作队列（WQ）：工作队列包括发送队列（SQ）和接收队列（CQ）。工作队列的每一个元素叫做 WQE，也就是 WR。
+* Host 从完成队列（CQ）中获取工作完成（WC）：完成队列里的每一个元素叫做 CQE，也就是 WC。
+* 具有 RDMA 引擎的硬件就是一个队列元素处理器。RDMA 硬件不断地从工作队列 WQ 中去取工作请求 WR 来执行，执行完了就给完成队列 CQ 中放置工作完成 WC。从生产者-消费者的角度理解就是：
+  * Host 生产 WR，把 WR 放到 WQ 中去
+  * RDMA 硬件消费 WR
+  * RDMA 硬件生产 WC，把 WC 放到 CQ 中去
+  * Host 消费 WC
   
-![](https://images2017.cnblogs.com/blog/1264595/201712/1264595-20171201113240508-1124733547.jpg)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-nvmeof-01/rdma-fig.png)
 
 
 ## NVMe
