@@ -62,6 +62,10 @@ NVMe 只适用于 SSD（SSD 和主板也要支持 NVMe）。AHCI 则适用于机
 
 一个 `Subsystem` 就是一个 `NVMe` 子系统，`Subsystem` 在 `target` 端，`Host` 可以申请连接某个 `target` 的 `Subsystem`。一个 `Port` 代表一个 `Transport` 资源。`Subsystem` 必须和 `Namespace`，`Port` 建立关系，但是他们的联系又是很灵活的：即一个 `Subsystem` 可以包含多个 `Namespace`，一个 `Namespace` 可以加入多个 `Subsystem`，一个 `Port` 可以放入多个 `Subsystem`。
 
+### NVM Set 和 Endurance Group
+
+详见 [NVM Set 和 Endurance Group](https://new.laoyaoba.com/n/832436)
+
 
 ## RDMA
 
