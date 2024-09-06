@@ -66,6 +66,18 @@ NVMe 只适用于 SSD（SSD 和主板也要支持 NVMe）。AHCI 则适用于机
 
 详见 [NVM Set 和 Endurance Group](https://new.laoyaoba.com/n/832436)
 
+### NQN
+
+NVM Qualified Name，用于**唯一标识 NVMe 目标**的名称格式，通常用于 iSCSI 和 Fabric 等协议中。
+
+NQN 的主要特点：
+* 唯一性：NQN 通常是**全局唯一**的，确保在整个存储网络中可以唯一识别目标。
+* 格式：NQN 的格式通常是 nqn.2021-09.io.spdk:nvm.target1，其中包含了时间戳和命名空间，这样可以避免名称冲突。
+* 结构：NQN 的结构通常包括前缀、日期和描述符，以便于在组织中管理多个存储目标。
+作用：
+
+NQN 用于标识 NVMe 目标设备，以便在网络中进行连接和管理。它在存储网络中起到类似于 DNS 名称的作用，使得设备能够在网络上被识别和访问。
+
 
 ## RDMA
 
