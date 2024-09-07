@@ -38,7 +38,7 @@ perf 是 SPDK 用来测试 NVMe SSD 性能的工具，最新版本的 SPDK 中 p
 
 ![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/perf-01-env-init.png)
 
-### 初始化 opts 参数默认值
+### 初始化 opts 参数默认值（控制流）
 
 函数调用栈：
 
@@ -103,7 +103,7 @@ opts.name = "perf";
 opts.pci_allowed = g_allowed_pci_addr;
 ```
 
-### 解析 args
+### 解析 args（控制流）
 
 函数调用栈：
 
@@ -247,7 +247,7 @@ spdk_nvme_transport_id_parse_trtype(enum spdk_nvme_transport_type *trtype, const
 
 到此设置 `trtype` 结束，其他参数初始化过程类似。
 
-### 初始化运行环境
+### 初始化运行环境（控制流）
 
 函数调用栈：
 
@@ -409,9 +409,9 @@ return rc;
 
 ## （二）设备发现和注册
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/perf-02-register.png)
 
-### 注册 worker 线程
+### 注册 worker 线程（控制流）
 
 函数调用栈：
 
@@ -419,8 +419,8 @@ return rc;
 --> perf.c: register_workers();
 ----> SPDK_ENV_FOREACH_CORE(i) 
 { 
-----> TAILQ_INIT(&worker->ns_ctx);
-----> TAILQ_INSERT_TAIL(&g_workers, worker, link);
+------> TAILQ_INIT(&worker->ns_ctx);
+------> TAILQ_INSERT_TAIL(&g_workers, worker, link);
 }
 ```
 
@@ -466,7 +466,7 @@ register_workers(void)
 注册 worker 线程工作结束。
 
 
-### 探测并初始化 NVMe controllers
+### 探测并初始化 NVMe controllers（控制流）
 
 函数调用栈：
 
@@ -514,7 +514,7 @@ TODO
 
 具体流程：
 
-`register_controllers()` 的作用实际是循环遍历所有检测到的控制器并为每个控制器调用实际注册函数 `register_ctrlr()` 进行注册。进入到该函数中：
+`register_controllers()` 的作用实际是遍历 `g_trid_list`，为每个 `trid` 循环遍历所有检测到的控制器并为每个控制器调用实际注册函数 `register_ctrlr()` 进行注册。进入到该函数中：
 
 ```c
 struct trid_entry {
