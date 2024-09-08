@@ -1119,15 +1119,166 @@ if (g_num_workers > 1 && g_quiet_count > 1) {
 ------> pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &oldstate);
 ```
 
+首先调用 `pthread_create()` 创建一个新线程，该线程执行 `nvme_poll_ctrlrs()` 函数。该函数的作用是对 `g_controllers` 中的 ctrlrs 进行轮询状态。进入 `nvme_poll_ctrlrs()` 函数中：
+
+```c
+static void *
+nvme_poll_ctrlrs(void *arg)
+{
+	struct ctrlr_entry *entry;
+	int oldstate;
+	int rc;
+
+    // 取消该线程的 CPU 亲和性，这样线程可以在任何可用的 CPU 上运行
+	spdk_unaffinitize_thread();
+
+	while (true) {
+        /* Set cancellability state of current thread to STATE, returning old
+        state in *OLDSTATE if OLDSTATE is not NULL.  */
+        // 线程不可中断
+		pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &oldstate);
+
+		TAILQ_FOREACH(entry, &g_controllers, link) {
+            // trtype = RDMA
+            // 进入该 if 判断
+			if (entry->trtype != SPDK_NVME_TRANSPORT_PCIE) {
+				rc = spdk_nvme_ctrlr_process_admin_completions(entry->ctrlr);
+				if (spdk_unlikely(rc < 0 && !g_exit)) {
+					g_exit = true;
+				}
+			}
+		}
+
+		pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &oldstate);
+
+		/* This is a pthread cancellation point and cannot be removed. */
+		sleep(1);
+	}
+
+	return NULL;
+}
+```
+
+在 `FOREACH` 每个 controllers 的时候，因为 transport type 为 RDMA，因此进入 if 判断，调用 `spdk_nvme_ctrlr_process_admin_completions(entry->ctrlr)` 函数。
+
+这个函数主要处理 admin queue 内命令的完成情况。`nvme_ctrlr_keep_alive(ctrlr)` 函数用于检查是否需要发送 `Keep Alive` 命令。进入 `nvme_ctrlr_keep_alive(ctrlr)` 函数：
+
+```c
+/*
+ * Check if we need to send a Keep Alive command.
+ * Caller must hold ctrlr->ctrlr_lock.
+ */
+static int
+nvme_ctrlr_keep_alive(struct spdk_nvme_ctrlr *ctrlr)
+{
+	uint64_t now;
+	struct nvme_request *req;
+	struct spdk_nvme_cmd *cmd;
+	int rc = 0;
+
+    ...
+
+	req = nvme_allocate_request_null(ctrlr->adminq, nvme_keep_alive_completion, NULL);
+
+	cmd = &req->cmd;
+	cmd->opc = SPDK_NVME_OPC_KEEP_ALIVE;
+
+	rc = nvme_ctrlr_submit_admin_request(ctrlr, req);
+}
+```
+
+可以发现 `nvme_ctrlr_keep_alive()` 先是生成一个空的 request，然后调用 `nvme_ctrlr_submit_admin_request(ctrlr, req)` 发送请求。后者在之后的数据流中还会用到，因此这里先不继续进入。回到 `spdk_nvme_ctrlr_process_admin_completions(entry->ctrlr)` 函数：
+
+```c
+int32_t
+spdk_nvme_ctrlr_process_admin_completions(struct spdk_nvme_ctrlr *ctrlr)
+{
+	int32_t num_completions;
+	int32_t rc;
+	struct spdk_nvme_ctrlr_process	*active_proc;
+
+    // 锁住 controller
+	nvme_ctrlr_lock(ctrlr);
+
+    // 在哪里初始化这个成员的？
+	if (ctrlr->keep_alive_interval_ticks) {
+        /*
+        * Check if we need to send a Keep Alive command.
+        * Caller must hold ctrlr->ctrlr_lock.
+        */
+		rc = nvme_ctrlr_keep_alive(ctrlr);
+		if (rc) {
+			nvme_ctrlr_unlock(ctrlr);
+			return rc;
+		}
+	}
+
+	rc = nvme_io_msg_process(ctrlr);
+	if (rc < 0) {
+		nvme_ctrlr_unlock(ctrlr);
+		return rc;
+	}
+	num_completions = rc;
+
+    // 处理 admin queue
+	rc = spdk_nvme_qpair_process_completions(ctrlr->adminq, 0);
+
+	/* Each process has an async list, complete the ones for this process object */
+	active_proc = nvme_ctrlr_get_current_process(ctrlr);
+    // 如果存在活跃进程，处理该进程的排队的异步事件
+	if (active_proc) {
+		nvme_ctrlr_complete_queued_async_events(ctrlr);
+	}
+
+	if (rc == -ENXIO && ctrlr->is_disconnecting) {
+		nvme_ctrlr_disconnect_done(ctrlr);
+	}
+
+	nvme_ctrlr_unlock(ctrlr);
+
+	if (rc < 0) {
+		num_completions = rc;
+	} else {
+		num_completions += rc;
+	}
+
+	return num_completions;
+}
+```
+
+接着调用 `nvme_io_msg_process(ctrlr)` 函数，作用可能是处理 io 请求消息，并返回已处理的请求个数。具体还没有细看，也没理解这里的作用。
+
+之后调用 `spdk_nvme_qpair_process_completions(ctrlr->adminq, 0)` 函数，处理 `admin queue` 中已完成的请求，获取操作结果。这个函数在后文的 io 数据流中也会调用到，在这里不进行跟入。
+
+创建线程执行 `nvme_poll_ctrlrs()` 函数结束。
+
+
 ### 连接 worker thread 和 namespace（控制流）
 
 函数调用栈：
 
 ```
 --> perf.c: associate_workers_with_ns();
+----> perf.c: allocate_ns_worker(entry, worker);
 ```
 
-进入到 `associate_workers_with_ns()` 函数中：
+worker thread 连接 namespace 的策略是这样的：
+
+每个 core 包含 1 个 worker thread。worker thread 和 namespace 按照以下方式连接：
+1. worker_num == ns_num：1 对 1；
+2. worker_num > ns_num：1 个 ns 可能会有 1 个或多个 workers；（队列中靠前的 ns，会得到多个 worker）
+3. worker_num < ns_num: 1 个 worker 可能会有 1 个或多个 ns；（队列中靠前的 worker，会得到多个 ns）
+4. 当开启 --use-every-core 选项，每个 worker 会连接所有 ns。
+
+也就是说：
+
+如果当 worker thread（ns）分配完，
+但 ns（worker thread）还有剩，
+则已分配完的 worker thread（ns）
+从其链表头部再分配，
+因此链表头部的 worker thread（ns）会分得更多 ns（worker thread）
+
+而连接的过程就是为 `worker->ns_ctx` 分配内存，并将 `ns_entry` 存储在 `ns_ctx` 的域中。这样 `worker` 就与 `ns` 建立了联系。即每个 `worker` 可能有多个 `ns_ctx`，每个 `ns_ctx` 中则存了一个 `ns_entry`。进入到 `associate_workers_with_ns()` 函数中：
 
 ```c
 static int
@@ -1144,6 +1295,14 @@ associate_workers_with_ns(void)
 	 * 4) more namespaces than workers - each worker is associated with one or more namespaces
 	 * --use-every-core option enabled - every worker is associated with all namespaces
 	 */
+    /**
+     * 每个 core 包含 1 个 worker thread。
+     * worker thread 和 namespace 按照以下方式连接：
+     * 1. worker_num == ns_num：1 对 1；
+     * 2. worker_num > ns_num：1 个 ns 可能会有 1 个或多个 workers；（ns 队列靠前，会得到多个 worker）
+     * 3. worker_num < ns_num: 1 个 worker 可能会有 1 个或多个 ns；（worker 队列靠前，会得到多个 ns）
+     * 4. 当开启 --use-every-core 选项，每个 worker 会连接所有 ns。
+     */
 	if (g_use_every_core) {
 		TAILQ_FOREACH(worker, &g_workers, link) {
 			TAILQ_FOREACH(entry, &g_namespaces, link) {
@@ -1188,6 +1347,32 @@ associate_workers_with_ns(void)
 	return 0;
 }
 ```
+
+进入到 `allocate_ns_worker(entry, worker)` 函数中，其实际作用就是新分配一个 `ns_worker_ctx`，然后将这个 `ns_worker_ctx` 中的 `entry` 域与传入的 `ns_entry` 关联，最后将这个 `ns_worker_ctx` 加入到 `worker` 的 `ns_ctx` 队列中，即每个 `worker` 可能有多个 `ns_ctx`，每个 `ns_ctx` 中则存了一个 `ns_entry`：
+
+```c
+static int
+allocate_ns_worker(struct ns_entry *entry, struct worker_thread *worker)
+{
+	struct ns_worker_ctx	*ns_ctx;
+
+	ns_ctx = calloc(1, sizeof(struct ns_worker_ctx));
+	if (!ns_ctx) {
+		return -1;
+	}
+
+	printf("Associating %s with lcore %d\n", entry->name, worker->lcore);
+	ns_ctx->stats.min_tsc = UINT64_MAX;
+	ns_ctx->entry = entry;
+	ns_ctx->histogram = spdk_histogram_data_alloc();
+	TAILQ_INSERT_TAIL(&worker->ns_ctx, ns_ctx, link);
+
+	return 0;
+}
+```
+
+`worker thread` 与 `namespace` 的连接到此执行结束。
+
 
 ### init barrier 线程同步（控制流）
 
