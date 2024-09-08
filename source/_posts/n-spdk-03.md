@@ -493,8 +493,7 @@ register_workers(void)
 ------------> TAILQ_FOREACH_SAFE(ctrlr, &probe_ctx->init_ctrlrs, tailq, ctrlr_tmp)
 {
 --------------> nvme.c: nvme_ctrlr_poll_internal(ctrlr, probe_ctx);
-----------------> nvme_ctrlr.c: nvme_ctrlr_process_init(ctrlr);
-------------------> TODO
+----------------> (TODO) nvme_ctrlr.c: nvme_ctrlr_process_init(ctrlr);
 ----------------> STAILQ_INIT(&ctrlr->io_producers);
 ----------------> TAILQ_REMOVE(&probe_ctx->init_ctrlrs, ctrlr, tailq);
 ----------------> TAILQ_INSERT_TAIL(&g_nvme_attached_ctrlrs, ctrlr, tailq);
@@ -690,7 +689,7 @@ nvme_probe_internal(struct spdk_nvme_probe_ctx *probe_ctx,
 }
 ```
 
-进入到 `nvme_transport_ctrlr_scan(probe_ctx, direct_connect);` 函数中：
+可以看出 `nvme_probe_internal(probe_ctx, false)` 函数中，通过调用了 `nvme_transport_ctrlr_scan(probe_ctx, direct_connect)` 函数，将扫描到的 controllers 都挂在了 probe_ctx->init_ctrlrs 尾队列中。进入到 `nvme_transport_ctrlr_scan(probe_ctx, direct_connect);` 函数中：
 
 TODO
 
@@ -803,11 +802,173 @@ nvme_ctrlr_poll_internal(struct spdk_nvme_ctrlr *ctrlr,
 }
 ```
 
-首先执行了 `nvme_ctrlr_process_init(ctrlr)` 函数，
+首先执行了 `nvme_ctrlr_process_init(ctrlr)` 函数，这个函数用来处理 controller 各种初始化状态，检查当前初始化步骤是否已完成或已超时。在初始化过程中，此函数将被反复调用，直到 controller 准备就绪。进入该函数中：
 
-TODO
+```c
+// 首先 controller 包含以下状态：
+static const char *
+nvme_ctrlr_state_string(enum nvme_ctrlr_state state)
+{
+	switch (state) {
+	case NVME_CTRLR_STATE_INIT_DELAY:
+		return "delay init";
+	case NVME_CTRLR_STATE_CONNECT_ADMINQ:
+		return "connect adminq";
+	case NVME_CTRLR_STATE_WAIT_FOR_CONNECT_ADMINQ:
+		return "wait for connect adminq";
+	case NVME_CTRLR_STATE_READ_VS:
+		return "read vs";
+	case NVME_CTRLR_STATE_READ_VS_WAIT_FOR_VS:
+		return "read vs wait for vs";
+	case NVME_CTRLR_STATE_READ_CAP:
+		return "read cap";
+	case NVME_CTRLR_STATE_READ_CAP_WAIT_FOR_CAP:
+		return "read cap wait for cap";
+	case NVME_CTRLR_STATE_CHECK_EN:
+		return "check en";
+	case NVME_CTRLR_STATE_CHECK_EN_WAIT_FOR_CC:
+		return "check en wait for cc";
+	case NVME_CTRLR_STATE_DISABLE_WAIT_FOR_READY_1:
+		return "disable and wait for CSTS.RDY = 1";
+	case NVME_CTRLR_STATE_DISABLE_WAIT_FOR_READY_1_WAIT_FOR_CSTS:
+		return "disable and wait for CSTS.RDY = 1 reg";
+	case NVME_CTRLR_STATE_SET_EN_0:
+		return "set CC.EN = 0";
+	case NVME_CTRLR_STATE_SET_EN_0_WAIT_FOR_CC:
+		return "set CC.EN = 0 wait for cc";
+	case NVME_CTRLR_STATE_DISABLE_WAIT_FOR_READY_0:
+		return "disable and wait for CSTS.RDY = 0";
+	case NVME_CTRLR_STATE_DISABLE_WAIT_FOR_READY_0_WAIT_FOR_CSTS:
+		return "disable and wait for CSTS.RDY = 0 reg";
+	case NVME_CTRLR_STATE_DISABLED:
+		return "controller is disabled";
+	case NVME_CTRLR_STATE_ENABLE:
+		return "enable controller by writing CC.EN = 1";
+	case NVME_CTRLR_STATE_ENABLE_WAIT_FOR_CC:
+		return "enable controller by writing CC.EN = 1 reg";
+	case NVME_CTRLR_STATE_ENABLE_WAIT_FOR_READY_1:
+		return "wait for CSTS.RDY = 1";
+	case NVME_CTRLR_STATE_ENABLE_WAIT_FOR_READY_1_WAIT_FOR_CSTS:
+		return "wait for CSTS.RDY = 1 reg";
+	case NVME_CTRLR_STATE_RESET_ADMIN_QUEUE:
+		return "reset admin queue";
+	case NVME_CTRLR_STATE_IDENTIFY:
+		return "identify controller";
+	case NVME_CTRLR_STATE_WAIT_FOR_IDENTIFY:
+		return "wait for identify controller";
+	case NVME_CTRLR_STATE_CONFIGURE_AER:
+		return "configure AER";
+	case NVME_CTRLR_STATE_WAIT_FOR_CONFIGURE_AER:
+		return "wait for configure aer";
+	case NVME_CTRLR_STATE_SET_KEEP_ALIVE_TIMEOUT:
+		return "set keep alive timeout";
+	case NVME_CTRLR_STATE_WAIT_FOR_KEEP_ALIVE_TIMEOUT:
+		return "wait for set keep alive timeout";
+	case NVME_CTRLR_STATE_IDENTIFY_IOCS_SPECIFIC:
+		return "identify controller iocs specific";
+	case NVME_CTRLR_STATE_WAIT_FOR_IDENTIFY_IOCS_SPECIFIC:
+		return "wait for identify controller iocs specific";
+	case NVME_CTRLR_STATE_GET_ZNS_CMD_EFFECTS_LOG:
+		return "get zns cmd and effects log page";
+	case NVME_CTRLR_STATE_WAIT_FOR_GET_ZNS_CMD_EFFECTS_LOG:
+		return "wait for get zns cmd and effects log page";
+	case NVME_CTRLR_STATE_SET_NUM_QUEUES:
+		return "set number of queues";
+	case NVME_CTRLR_STATE_WAIT_FOR_SET_NUM_QUEUES:
+		return "wait for set number of queues";
+	case NVME_CTRLR_STATE_IDENTIFY_ACTIVE_NS:
+		return "identify active ns";
+	case NVME_CTRLR_STATE_WAIT_FOR_IDENTIFY_ACTIVE_NS:
+		return "wait for identify active ns";
+	case NVME_CTRLR_STATE_IDENTIFY_NS:
+		return "identify ns";
+	case NVME_CTRLR_STATE_WAIT_FOR_IDENTIFY_NS:
+		return "wait for identify ns";
+	case NVME_CTRLR_STATE_IDENTIFY_ID_DESCS:
+		return "identify namespace id descriptors";
+	case NVME_CTRLR_STATE_WAIT_FOR_IDENTIFY_ID_DESCS:
+		return "wait for identify namespace id descriptors";
+	case NVME_CTRLR_STATE_IDENTIFY_NS_IOCS_SPECIFIC:
+		return "identify ns iocs specific";
+	case NVME_CTRLR_STATE_WAIT_FOR_IDENTIFY_NS_IOCS_SPECIFIC:
+		return "wait for identify ns iocs specific";
+	case NVME_CTRLR_STATE_SET_SUPPORTED_LOG_PAGES:
+		return "set supported log pages";
+	case NVME_CTRLR_STATE_SET_SUPPORTED_INTEL_LOG_PAGES:
+		return "set supported INTEL log pages";
+	case NVME_CTRLR_STATE_WAIT_FOR_SUPPORTED_INTEL_LOG_PAGES:
+		return "wait for supported INTEL log pages";
+	case NVME_CTRLR_STATE_SET_SUPPORTED_FEATURES:
+		return "set supported features";
+	case NVME_CTRLR_STATE_SET_DB_BUF_CFG:
+		return "set doorbell buffer config";
+	case NVME_CTRLR_STATE_WAIT_FOR_DB_BUF_CFG:
+		return "wait for doorbell buffer config";
+	case NVME_CTRLR_STATE_SET_HOST_ID:
+		return "set host ID";
+	case NVME_CTRLR_STATE_WAIT_FOR_HOST_ID:
+		return "wait for set host ID";
+	case NVME_CTRLR_STATE_TRANSPORT_READY:
+		return "transport ready";
+	case NVME_CTRLR_STATE_READY:
+		return "ready";
+	case NVME_CTRLR_STATE_ERROR:
+		return "error";
+	case NVME_CTRLR_STATE_DISCONNECTED:
+		return "disconnected";
+	}
+	return "unknown";
+};
 
-中间执行了一些控制器在不同队列中进行切换的操作，最后执行 `attach_cb` 回调函数，`attach_cb(probe_ctx->cb_ctx, &ctrlr->trid, ctrlr, &ctrlr->opts)` 位于 `perf.c` 中，进入该函数：
+int
+nvme_ctrlr_process_init(struct spdk_nvme_ctrlr *ctrlr)
+{
+	uint32_t ready_timeout_in_ms;
+	uint64_t ticks;
+	int rc = 0;
+
+	ticks = spdk_get_ticks();
+
+	/*
+	 * May need to avoid accessing any register on the target controller
+	 * for a while. Return early without touching the FSM.
+	 * Check sleep_timeout_tsc > 0 for unit test.
+	 */
+	if ((ctrlr->sleep_timeout_tsc > 0) &&
+	    (ticks <= ctrlr->sleep_timeout_tsc)) {
+		return 0;
+	}
+	ctrlr->sleep_timeout_tsc = 0;
+
+	ready_timeout_in_ms = nvme_ctrlr_get_ready_timeout(ctrlr);
+
+	/*
+	 * Check if the current initialization step is done or has timed out.
+	 */
+	switch (ctrlr->state) {
+	case NVME_CTRLR_STATE_INIT_DELAY:
+        ...
+        break;
+    case ...:
+    ...
+    case NVME_CTRLR_STATE_TRANSPORT_READY:
+		rc = nvme_transport_ctrlr_ready(ctrlr);
+		if (rc) {
+			NVME_CTRLR_ERRLOG(ctrlr, "Transport controller ready step failed: rc %d\n", rc);
+			nvme_ctrlr_set_state(ctrlr, NVME_CTRLR_STATE_ERROR, NVME_TIMEOUT_INFINITE);
+		} else {
+			nvme_ctrlr_set_state(ctrlr, NVME_CTRLR_STATE_READY, NVME_TIMEOUT_INFINITE);
+		}
+		break;
+
+	case NVME_CTRLR_STATE_READY:
+		NVME_CTRLR_DEBUGLOG(ctrlr, "Ctrlr already in ready state\n");
+		return 0;
+    }
+}
+```
+
+处理 controller 初始化状态之后，再执行了一些控制器在不同队列中进行切换的操作，最后执行 `attach_cb` 回调函数，`attach_cb(probe_ctx->cb_ctx, &ctrlr->trid, ctrlr, &ctrlr->opts)` 位于 `perf.c` 中，进入该函数：
 
 ```c
 // attach_cb 回调函数
@@ -928,4 +1089,140 @@ if (g_num_workers > 1 && g_quiet_count > 1) {
 
 ![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/)
 
-### 
+### 轮询 controllers 状态（数据流）
+
+函数调用栈：
+
+```
+--> pthread_create(&thread_id, NULL, &nvme_poll_ctrlrs, NULL);
+----> perf.c: nvme_poll_ctrlrs();
+------> pthread_setcancelstate(PTHREAD_CANCEL_DISABLE, &oldstate);
+------> TAILQ_FOREACH(entry, &g_controllers, link)
+{
+--------> nvme_ctrlr.c: spdk_nvme_ctrlr_process_admin_completions(entry->ctrlr);
+----------> nvme_ctrlr.c: nvme_ctrlr_keep_alive(ctrlr);
+------------> nvme_internal.h: nvme_allocate_request_null(ctrlr->adminq, nvme_keep_alive_completion, NULL);
+--------------> nvme_internal.h: nvme_allocate_request_contig(qpair, NULL, 0, cb_fn, cb_arg);
+----------------> nvme_internal.h: nvme_allocate_request(qpair, &payload, payload_size, 0, cb_fn, cb_arg);
+------------------> STAILQ_FIRST(&qpair->free_req);
+------------------> TAILQ_REMOVE_HEAD(&qpair->free_req, stailq);
+------------------> NVME_INIT_REQUEST(req, cb_fn, cb_arg, *payload, payload_size, md_size);
+------------> nvme_ctrlr.c: nvme_ctrlr_submit_admin_request(ctrlr, req);
+--------------> nvme_qpair.c: nvme_qpair_submit_request(ctrlr->adminq, req);
+----------------> 与下文数据流的过程类似，此处略
+----------> nvme_ctrlr.c: nvme_io_msg_process(ctrlr);
+------------> nvme_qpair.c: spdk_nvme_qpair_process_completions(ctrlr->external_io_msgs_qpair, 0);
+--------------> 与下文数据流的过程类似，此处略
+----------> nvme_qpair.c: spdk_nvme_qpair_process_completions(ctrlr->adminq, 0);
+------------> 与下文数据流的过程类似，此处略
+}
+------> pthread_setcancelstate(PTHREAD_CANCEL_ENABLE, &oldstate);
+```
+
+### 连接 worker thread 和 namespace（控制流）
+
+函数调用栈：
+
+```
+--> perf.c: associate_workers_with_ns();
+```
+
+进入到 `associate_workers_with_ns()` 函数中：
+
+```c
+static int
+associate_workers_with_ns(void)
+{
+	struct ns_entry		*entry = TAILQ_FIRST(&g_namespaces);
+	struct worker_thread	*worker = TAILQ_FIRST(&g_workers);
+	int			i, count;
+
+	/* Each core contains single worker, and namespaces are associated as follows:
+	 * --use-every-core not specified (default):
+	 * 2) equal workers and namespaces - each worker associated with single namespace
+	 * 3) more workers than namespaces - each namespace is associated with one or more workers
+	 * 4) more namespaces than workers - each worker is associated with one or more namespaces
+	 * --use-every-core option enabled - every worker is associated with all namespaces
+	 */
+	if (g_use_every_core) {
+		TAILQ_FOREACH(worker, &g_workers, link) {
+			TAILQ_FOREACH(entry, &g_namespaces, link) {
+				if (allocate_ns_worker(entry, worker) != 0) {
+					return -1;
+				}
+			}
+		}
+		return 0;
+	}
+
+    // 选择数目多的那个（ns 或者 worker thread）
+	count = g_num_namespaces > g_num_workers ? g_num_namespaces : g_num_workers;
+
+	for (i = 0; i < count; i++) {
+		if (entry == NULL) {
+			break;
+		}
+
+		if (allocate_ns_worker(entry, worker) != 0) {
+			return -1;
+		}
+
+        // 如果当 worker thread（ns）分配完，
+        // 但 ns（worker thread）还有剩，
+        // 则已分配完的 worker thread（ns）
+        // 从其链表头部再分配，
+        // 因此链表头部的 worker thread（ns）会分得更多 ns（worker thread） 
+
+		worker = TAILQ_NEXT(worker, link);
+		if (worker == NULL) {
+			worker = TAILQ_FIRST(&g_workers);
+		}
+
+		entry = TAILQ_NEXT(entry, link);
+		if (entry == NULL) {
+			entry = TAILQ_FIRST(&g_namespaces);
+		}
+
+	}
+
+	return 0;
+}
+```
+
+### init barrier 线程同步（控制流）
+
+执行 `pthread_barrier_init(&g_worker_sync_barrier, NULL, g_num_workers)` 函数。当当所有 thread 都执行到 `barrier_wait()` 后，才继续执行后续代码。作用是实现无锁的线程同步。
+
+### 绑核、分配 worker_fn 任务（控制流 + 数据流）
+
+函数调用栈：
+
+```
+--> TAILQ_FOREACH(worker, &g_workers, link)
+{
+----> lib/env_dpdk/threads.c: spdk_env_thread_launch_pinned(worker->lcore, work_fn, worker);
+------> dpdk/lib/eal/common/eal_common_launch.c: rte_eal_remote_launch(fn, arg, core);
+------> perf.c: work_fn();
+--------> TAILQ_FOREACH(ns_ctx, &worker->ns_ctx, link)
+{
+----------> perf.c: init_ns_worker_ctx(ns_ctx);
+
+}
+--------> pthread_barrier_wait(&g_worker_sync_barrier);
+--------> TAILQ_FOREACH(ns_ctx, &worker->ns_ctx, link)
+{
+----------> submit_io(ns_ctx, g_queue_depth);
+------------> TODO
+}
+--------> TAILQ_FOREACH(ns_ctx, &worker->ns_ctx, link)
+{
+----------> TAILQ_SWAP(&swap, &ns_ctx->queued_tasks, perf_task, link);
+----------> task = TAILQ_FIRST(&swap);
+----------> TAILQ_REMOVE(&swap, task, link);
+----------> perf.c: submit_single_io(task);
+------------> TODO
+----------> perf.c: nvme_check_io(ns_ctx);
+------------> TODO
+}
+}
+```
