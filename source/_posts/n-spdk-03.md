@@ -1411,3 +1411,26 @@ allocate_ns_worker(struct ns_entry *entry, struct worker_thread *worker)
 }
 }
 ```
+
+这一部分是先 `TAILQ_FOREACH(worker, &g_workers, link)` 遍历所有 `worker`，对于非 `main worker`，将它与 `core` 进行绑定，并分配任务 `work_fn()`，代码体现：
+
+```c
+g_main_core = spdk_env_get_current_core();
+	main_worker = NULL;
+	TAILQ_FOREACH(worker, &g_workers, link) {
+		if (worker->lcore != g_main_core) {
+            // worker thread 分配到 core
+            // worker thread 和 core 是一一对应
+            // 每个 core 绑定一个 work_fn
+			spdk_env_thread_launch_pinned(worker->lcore, work_fn, worker);
+		} else {
+			assert(main_worker == NULL);
+            // WHAT? 设置主 worker thread
+			main_worker = worker;
+		}
+	}
+```
+
+`spdk_env_thread_launch_pinned()` 函数就不跟入，直接跟进 `work_fn()` 执行 perf 主要任务的函数。
+
+TODO
