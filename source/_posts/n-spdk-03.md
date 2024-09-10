@@ -1052,6 +1052,23 @@ register_ctrlr(struct spdk_nvme_ctrlr *ctrlr, struct trid_entry *trid_entry)
 TODO
 
 ```c
+struct ns_entry
+{
+    ...
+    union {
+		struct {
+			struct spdk_nvme_ctrlr	*ctrlr;
+			struct spdk_nvme_ns	*ns;
+		} nvme;
+	} u;
+    ...
+};
+
+struct ns_worker_ctx
+{
+    struct ns_entry		*entry;
+    ...
+};
 
 ```
 
@@ -1110,7 +1127,7 @@ if (g_num_workers > 1 && g_quiet_count > 1) {
 ------------> nvme_ctrlr.c: nvme_ctrlr_submit_admin_request(ctrlr, req);
 --------------> nvme_qpair.c: nvme_qpair_submit_request(ctrlr->adminq, req);
 ----------------> 与下文数据流的过程类似，此处略
-----------> nvme_ctrlr.c: nvme_io_msg_process(ctrlr);
+----------> nvme_io_msg.c: nvme_io_msg_process(ctrlr);
 ------------> nvme_qpair.c: spdk_nvme_qpair_process_completions(ctrlr->external_io_msgs_qpair, 0);
 --------------> 与下文数据流的过程类似，此处略
 ----------> nvme_qpair.c: spdk_nvme_qpair_process_completions(ctrlr->adminq, 0);
@@ -1266,8 +1283,11 @@ worker thread 连接 namespace 的策略是这样的：
 
 每个 core 包含 1 个 worker thread。worker thread 和 namespace 按照以下方式连接：
 1. worker_num == ns_num：1 对 1；
+
 2. worker_num > ns_num：1 个 ns 可能会有 1 个或多个 workers；（队列中靠前的 ns，会得到多个 worker）
+
 3. worker_num < ns_num: 1 个 worker 可能会有 1 个或多个 ns；（队列中靠前的 worker，会得到多个 ns）
+
 4. 当开启 --use-every-core 选项，每个 worker 会连接所有 ns。
 
 也就是说：
@@ -1391,23 +1411,63 @@ allocate_ns_worker(struct ns_entry *entry, struct worker_thread *worker)
 --------> TAILQ_FOREACH(ns_ctx, &worker->ns_ctx, link)
 {
 ----------> perf.c: init_ns_worker_ctx(ns_ctx);
-
+------------> TAILQ_INIT(&ns_ctx->queued_tasks);
+------------> perf.c: nvme_init_ns_worker_ctx(ns_ctx);
+--------------> nvme_poll_group.c: spdk_nvme_poll_group_create(ns_ctx, NULL);
+--------------> nvme_ctrlr.c: spdk_nvme_ctrlr_alloc_io_qpair(entry->u.nvme.ctrlr, &opts, sizeof(opts));
+--------------> nvme_poll_group.c: spdk_nvme_poll_group_add(group, qpair);
+--------------> nvme_ctrlr.c: spdk_nvme_ctrlr_connect_io_qpair(entry->u.nvme.ctrlr, qpair);
+--------------> nvme_poll_group.c: spdk_nvme_poll_group_process_completions(group, 0, perf_disconnect_cb);
+----------------> nvme_transport.c: nvme_transport_poll_group_process_completions(tgroup, completions_per_qpair, disconnected_qpair_cb); 
+------------------> nvme_rdma.c: nvme_rdma_poll_group_process_completions(tgroup, completions_per_qpair, disconnected_qpair_cb);
+--------------------> TODO
+--------------> nvme_poll_group.c: spdk_nvme_poll_group_all_connected(group);
 }
 --------> pthread_barrier_wait(&g_worker_sync_barrier);
 --------> TAILQ_FOREACH(ns_ctx, &worker->ns_ctx, link)
 {
-----------> submit_io(ns_ctx, g_queue_depth);
-------------> TODO
+*** 发送请求开始 ***
+----------> perf.c: submit_io(ns_ctx, g_queue_depth);
+------------> perf.c: task = allocate_task(ns_ctx, queue_depth);
+------------> perf.c: submit_single_io(task);
+--------------> perf.c: nvme_submit_io(task, ns_ctx, entry, offset_in_ios);
+----------------> nvme_ns_cmd.c: spdk_nvme_ns_cmd_read_with_md(entry->u.nvme.ns, ns_ctx->u.nvme.qpair[qp_num], task->iovs[0].iov_base, task->md_iov.iov_base, lba, entry->io_size_blocks, io_complete,task, entry->io_flags, task->dif_ctx.apptag_mask, task->dif_ctx.app_tag);
+------------------> nvme_ns_cmd.c: req = _nvme_ns_cmd_rw(...);
+--------------------> nvme_internal.h: req = nvme_allocate_request(...);
+----------------------> req = STAILQ_FIRST(&qpair->free_req);
+----------------------> STAILQ_REMOVE_HEAD(&qpair->free_req, stailq);
+----------------------> NVME_INIT_REQUEST(req, cb_fn, cb_arg, *payload, payload_size, md_size);
+------------------> nvme_qpair.c: nvme_qpair_submit_request(qpair, req);（请求提交接口）
+--------------------> nvme_qpair.c: _nvme_qpair_submit_request(qpair, req);
+----------------------> nvme_transport.c: nvme_transport_qpair_submit_request(qpair, req);
+------------------------> nvme_rdma.c: nvme_rdma_qpair_submit_request(qpair, req);
+--------------------------> nvme_rdma.c: rqpair = nvme_rdma_qpair(qpair);
+--------------------------> nvme_rdma.c: rdma_req = nvme_rdma_req_get(rqpair);
+--------------------------> nvme_rdma.c: nvme_rdma_req_init(rqpair, req, rdma_req);
+--------------------------> TAILQ_INSERT_TAIL(&rqpair->outstanding_reqs, rdma_req, link);
+--------------------------> nvme_rdma.c: group = nvme_rdma_poll_group(qpair->poll_group);
+--------------------------> TAILQ_INSERT_TAIL(&group->active_qpairs, rqpair, link_active);
+--------------------------> nvme_rdma.c: nvme_rdma_qpair_submit_sends(rqpair);
+----------------------------> lib/rdma/rdma_verbs.c: spdk_rdma_qp_flush_send_wrs(rqpair->rdma_qp, &bad_send_wr);
+------------------------------> ibv_post_send(spdk_rdma_qp->qp, spdk_rdma_qp->send_wrs.first, bad_wr);（通过 rdma 原语发送）
+*** 发送请求结束 ***
 }
 --------> TAILQ_FOREACH(ns_ctx, &worker->ns_ctx, link)
 {
-----------> TAILQ_SWAP(&swap, &ns_ctx->queued_tasks, perf_task, link);
-----------> task = TAILQ_FIRST(&swap);
-----------> TAILQ_REMOVE(&swap, task, link);
-----------> perf.c: submit_single_io(task);
-------------> TODO
-----------> perf.c: nvme_check_io(ns_ctx);
-------------> TODO
+----------> ...
+*** 接收请求开始 ***
+----------> perf.c: check_io(ns_ctx);
+------------> perf.c: nvme_check_io(ns_ctx);
+--------------> nvme_poll_group.c: spdk_nvme_poll_group_process_completions(ns_ctx->u.nvme.group, g_max_completions, perf_disconnect_cb);
+----------------> STAILQ_FOREACH(tgroup, &group->tgroups, link)
+{
+------------------> nvme_transport.c: nvme_transport_poll_group_process_completions(tgroup, completions_per_qpair, disconnected_qpair_cb);
+--------------------> nvme_rdma.c: nvme_rdma_poll_group_process_completions(...);
+----------------------> STAILQ_FOREACH(poller, &group->pollers, link)
+{
+------------------------> nvme_rdma.c: nvme_rdma_cq_process_completions(poller->cq, batch_size, poller, NULL, &rdma_completions);
+}
+}
 }
 }
 ```
@@ -1433,4 +1493,18 @@ g_main_core = spdk_env_get_current_core();
 
 `spdk_env_thread_launch_pinned()` 函数就不跟入，直接跟进 `work_fn()` 执行 perf 主要任务的函数。
 
-TODO
+`work_fn()` 函数的主要操作如下，
+
+1. 首先初始化 `worker_thread` 指向的 `ns_worker_ctx` 链表，就是给每个 `ns_worker_ctx` 指向的 `ctrlr` 申请一个 `io_qpair`。
+
+ps：`ns_worker_ctx` 能指向 `ctrlr` 是因为 `ns_worker_ctx` 中绑定了 `ns_entry`，而在 `register_ns()` 函数中则将 `ctrlr` 与 `ns` 进行了绑定。
+
+2. 遍历 `ns_worker_ctx` 链表，向每个 `ns_worker_ctx` 指向的 `ctrlr` 发送 `queue_depth` 个 `io request` 到 `io_qpair`。
+
+3. 循环遍历 `ns_work_ctx` 链表，检查每个 `ns_work_ctx` 指向的 `ctrlr` 的 `io request` 的完成情况。如果 `io request` 已经完成就在 `io complete callback` 中重新发送 `io request`。遍历完一次链表之后就检查一下时间，如果超过指定的时间就退出，否则继续。
+
+进入该函数中：
+
+```c
+
+```
