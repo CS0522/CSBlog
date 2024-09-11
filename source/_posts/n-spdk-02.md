@@ -287,7 +287,17 @@ Target 端 ip：`192.168.159.142`。
 
 这个 BDF `0000:0b:00.0` 可能会变化，需要记住。
 
-### 创建 NVMe 盘、启动 tgt 并监听
+### 给 SPDK 分配大页
+
+```bash
+echo 32768 | tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
+# output:
+# 32768
+mkdir /dev/hugepages_2mb
+mount -t hugetlbfs none /dev/hugepages_2mb -o pagesize=2MB
+```
+
+### 启动 tgt 并监听
 
 ```bash
 # 具体参数代表含义还没完全弄清，可以通过 --help 查询
@@ -331,7 +341,9 @@ Host 端 ip：`192.168.159.143`。
 # 0000:0b:00.0 (15ad 07f0): nvme -> uio_pci_generic
 ```
 
-### 发现 Target 并连接
+### 发现 Target 并连接（与 SPDK 无关）
+
+这一步执行的是 `nvme-cli` 的命令，需要经过 kernel 驱动，而 SPDK 是用户态驱动。可以直接跳过这一步直接运行 SPDK 的应用程序。
 
 ```bash
 # 发现
@@ -388,9 +400,11 @@ lsblk
 
 ![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-02/spdk-nvmeof-perftest.png)
 
-但不知道为什么我的测试结果性能很低，可能是因为虚拟机的缘故？
+这里测试结果的值较低，可能是因为虚拟机的缘故？
 
-### 取消连接
+### 取消连接（与 SPDK 无关）
+
+如果执行了前面的 `nvme connect` 命令连接设备，则这里执行 `nvme disconnect` 命令取消连接。
 
 ```bash
 nvme disconnect -n "nqn.2016-06.io.spdk:cnode1"
