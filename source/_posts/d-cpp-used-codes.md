@@ -427,4 +427,21 @@ int main(int argc, char* argv[]) {
 ***************thread complete(1725351116)***************
 ```
 
-## 
+## Linux 宏 likely()、unlikely()
+
+使用 `likely()`，执行 if 后面的语句的机会更大，使用 `unlikely()`，执行 else 后面的语句机会更大一些。
+
+```c
+if (likely(a>b)) {
+　　fun1();
+}
+if (unlikely(a>b)){
+　fun2();
+}
+```
+
+这里就是程序员可以确定 `a>b` 在程序执行流程中出现的可能相比较大，因此运用了 `likely()` 告诉编译器将 `fun1()` 函数的二进制代码紧跟在前面程序的后面，这样就 cache 在预取数据时就可以将 `fun1()` 函数的二进制代码拿到 cache 中。这样，也就添加了 `cache` 的命中率。
+
+同样的，`unlikely()` 的作用就是告诉编译器，`a<=b` 可能行大，`fun2()` 紧跟前面程序。
+
+总之，`likely` 和 `unlikely` 的功能就是添加 cache 的命中率，提高系统执行速度。

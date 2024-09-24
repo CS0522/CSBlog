@@ -287,7 +287,7 @@ Target 端 ip：`192.168.159.142`。
 
 这个 BDF `0000:0b:00.0` 可能会变化，需要记住。
 
-### 给 SPDK 分配大页
+### 给 SPDK 分配大页（非必须）
 
 ```bash
 echo 32768 | tee /sys/kernel/mm/hugepages/hugepages-2048kB/nr_hugepages
@@ -303,6 +303,7 @@ mount -t hugetlbfs none /dev/hugepages_2mb -o pagesize=2MB
 # 具体参数代表含义还没完全弄清，可以通过 --help 查询
 
 # 1. 启动 nvmf_tgt 并监听
+# 这里第一次可能没能启动成功，再试一次看到 succeed 就是成功
 build/bin/nvmf_tgt & scripts/rpc.py nvmf_create_transport -t RDMA -u 8192 -i 131072 -c 8192
 
 # 2. 将 NVMe 控制器附加到 SPDK 的块设备层
@@ -380,6 +381,13 @@ lsblk
 # 用 spdk 自带的 perf 进行测试
 ./build/bin/spdk_nvme_perf -r 'trtype:rdma adrfam:IPv4 traddr:192.168.159.142 trsvcid:4420' -q 256 -o 4096 -w randread -t 100
 
+# -q, --io-depth <val> io depth
+# -o, --io-size <val> io size in bytes
+# -w, --io-pattern <pattern> io pattern type, must be one of: 
+# (read, write, randread, randwrite, rw, randrw)
+# -t, --time <sec> time in seconds
+# -r, --transport <fmt> Transport ID for local PCIe NVMe or NVMeoF
+
 # output:
 # ===== spdk_nvme_perf start =====
 # Initializing NVMe Controllers
@@ -408,4 +416,10 @@ lsblk
 
 ```bash
 nvme disconnect -n "nqn.2016-06.io.spdk:cnode1"
+```
+
+### 恢复内核态驱动
+
+```bash
+./scripts/setup.sh reset
 ```

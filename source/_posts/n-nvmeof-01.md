@@ -85,9 +85,11 @@ NQN 用于标识 NVMe 目标设备，以便在网络中进行连接和管理。�
 
 [RDMA 技术浅析](https://chenxiaoweii.github.io/2017/02/27/RDMA/)
 
-RDMA 是基于消息的传输协议，数据传输都是异步操作。 RDMA 操作其实很简单，可以理解为：
+[RDMA SEND/RECV、Read/Write 流程](https://blog.csdn.net/lianghuaju/article/details/140240461)
 
-* Host 提交工作请求（WR）到工作队列（WQ）：工作队列包括发送队列（SQ）和接收队列（CQ）。工作队列的每一个元素叫做 WQE，也就是 WR。
+RDMA 操作可以简单理解为：
+
+* Host 提交工作请求（WR）到工作队列（WQ）：工作队列包括发送队列（SQ）和接收队列（RSQ）。工作队列的每一个元素叫做 WQE，也就是 WR。
 * Host 从完成队列（CQ）中获取工作完成（WC）：完成队列里的每一个元素叫做 CQE，也就是 WC。
 * 具有 RDMA 引擎的硬件就是一个队列元素处理器。RDMA 硬件不断地从工作队列 WQ 中去取工作请求 WR 来执行，执行完了就给完成队列 CQ 中放置工作完成 WC。从生产者-消费者的角度理解就是：
   * Host 生产 WR，把 WR 放到 WQ 中去
@@ -127,7 +129,20 @@ NVMe 中 Command 执行流程有 8 步，Host 与 Controller 之间用 PCIe TLP 
 ![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-nvmeof-01/nvme-command-flow.png)
 
 
+### NVMe 相关规范
+
+[NVM-Express-Base-Specification-2.0b](https://nvmexpress.org/wp-content/uploads/NVM-Express-Base-Specification-2.0b-2021.12.18-Ratified.pdf)
+
+[NVM-Express-RDMA-Transport-Specification-1.0d](https://nvmexpress.org/wp-content/uploads/NVM-Express-RDMA-Transport-Specification-1.0d-2024.07.01-Ratified.pdf)
+
+[NVMe-over-Fabrics-1.1a](https://nvmexpress.org/wp-content/uploads/NVMe-over-Fabrics-1.1a-2021.07.12-Ratified.pdf)
+
+
 ### NVMe 技术概述
+
+[NVMe 2.0 简介](https://zhuanlan.zhihu.com/p/666800517)
+
+[介绍 NVMe](https://blog.csdn.net/BGONE/article/details/123467570)
 
 [NVMe系列专题之一：NVMe技术概述](https://mp.weixin.qq.com/s?__biz=MzIwNTUxNDgwNg==&mid=2247484348&idx=1&sn=1fd3356c6cd9fee9492dcc7d6eb30345&chksm=972ef2e5a0597bf3190c7e5d7717e25ef3a5d83a1b6d7a20f8c4adb1beafc4372f1d79288dd7&scene=21#wechat_redirect)
 
@@ -150,7 +165,11 @@ NVMe 中 Command 执行流程有 8 步，Host 与 Controller 之间用 PCIe TLP 
 
 ## NVMe-oF
 
-NVMe 协议并非局限于在服务器内部连接本地闪存驱动器，它还可通过网络使用。在网络环境内使用时，网络“架构”支持存储和服务器元素之间的任意连接。NVMe-oF 支持组织创建超高性能存储网络，其时延能够媲美直连存储。因而可在服务器之间按需共享快速存储设备。
+[什么是 NVMe-oF](https://zhuanlan.zhihu.com/p/580033035)
+
+[RDMA 架构与实践](https://www.cnblogs.com/bandaoyu/p/16752034.html)
+
+NVMe 协议并非局限于在服务器内部连接本地闪存驱动器，它还可通过网络使用。在网络环境内使用时，网络“架构”支持存储和服务器元素之间的任意连接。NVMe-oF 支持组织创建超高性能存储网络，其时延能够媲美直连存储。因而可在服务器之间按需共享快速存储设备。NVMe-oF 使用基于消息的模型通过网络在主机和目标存储设备之间发送请求和响应。
 
 ![NVMe-oF 传输协议](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-nvmeof-01/nvmeof-trans-protocol.png)
 
