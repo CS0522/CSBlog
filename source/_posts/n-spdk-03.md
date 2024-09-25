@@ -32,18 +32,9 @@ perf 是 SPDK 用来测试 NVMe SSD 性能的工具，最新版本的 SPDK 中 p
 
 ## perf 资源关系图
 
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/resource-relationship.png)
 
 ---
-
-TODO
-
-1. 函数调用栈 + 控制流程图 + 数据流程图，按照不同流程图分章节跟进重要函数中去；
-
-2. 资源关系图，所有用到的重要资源，如 `spdk_nvme_ctrlr`、`spdk_nvme_ns` 数据结构等，理清他们的关系，类似于 UML 类图；
-
-3. controller 状态转移图；
-
-4. 监控数据发送和接收、传输性能的逻辑。
 
 函数调用栈说明：
 
@@ -53,13 +44,15 @@ TODO
 
 * 函数结尾 `;` 表示该函数结束；`:` 表示进入该函数，接下来存在函数调用。
 
+所有函数的调用可以利用 SPDK 的 debug，通过 `-G` 参数开启，不过没有函数的调用层次。
+
 ---
 
 ## （一）控制流（初始化）
 
 流程图：
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/dev-stream-init.png)
 
 函数调用栈：
 
@@ -121,14 +114,9 @@ register_controllers():
 
 ## （二）控制流（初始化 - fabric_ctrlr_scan）
 
-初始化过程中 Controller 状态转移图：
-
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/)
-
-
 流程图：
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/dev-stream-fabric-ctrlr-scan.png)
 
 函数调用栈：
 
@@ -146,6 +134,8 @@ nvme_rdma.c: nvme_fabric_ctrlr_scan(probe_ctx, ...):
             TAILQ_INIT(&ctrlr->active_procs);
             RB_INIT(&ctrlr->ns);
         rctrlr->ctrlr.adminq = nvme_rdma_ctrlr_create_qpair(&rctrlr->ctrlr, ..., async = true):
+            rqpair->state = NVME_RDMA_QPAIR_STATE_INVALID; // 创建了 rqpair、设置状态为 INVALID
+	        qpair = &rqpair->qpair;
             nvme_qpair_init(qpair, qid, ctrlr, qprio, num_requests, async):
                 ... // 设置 qpair 部分字段
                 qpair->ctrlr = ctrlr;
@@ -192,6 +182,8 @@ nvme_rdma.c: nvme_fabric_ctrlr_scan(probe_ctx, ...):
                             flag = fcntl(rctrlr->cm_channel->fd, F_GETFL);
                             // 创建 admin qpair，qid = 0 为 admin queue
                             rctrlr->ctrlr.adminq = nvme_rdma_ctrlr_create_qpair(&rctrlr->ctrlr, qid = 0, ..., async = true):
+                                rqpair->state = NVME_RDMA_QPAIR_STATE_INVALID; // 创建了 rqpair、设置状态为 INVALID
+	                            qpair = &rqpair->qpair;
                                 nvme_qpair_init(qpair, qid, ctrlr, qprio, num_requests, async):
                                     ... // 设置 qpair 部分字段
                                     qpair->ctrlr = ctrlr;
@@ -214,9 +206,11 @@ nvme_rdma.c: nvme_fabric_ctrlr_scan(probe_ctx, ...):
 
 ## （三）控制流（初始化 - ctrlr_process_init）
 
+Controller 状态转移过程。
+
 流程图：
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/dev-stream-ctrlr-process-init.png)
 
 函数调用栈：
 
@@ -232,7 +226,7 @@ nvme_ctrlr_process_init(ctrlr):
     spdk_nvme_qpair_process_completions(ctrlr->adminq, 0):
         nvme_transport_qpair_process_completions(qpair, max_completions):
             nvme_rdma_qpair_process_completions(qpair, max_completions):
-
+                TODO
     switch (ctrlr->adminq->state) {
         // QPAIR_CONNECTING:
 			break;
@@ -316,7 +310,10 @@ nvme_ctrlr_process_init(ctrlr):
     nvme_ctrlr_set_state(ctrlr, NVME_CTRLR_STATE_READY, NVME_TIMEOUT_INFINITE);
     // 状态 NVME_CTRLR_STATE_READY.
     // 状态 WAIT_FOR_XXX 统一处理：（通过 callback 执行转换下一个状态操作）
-    spdk_nvme_qpair_process_completions(ctrlr->adminq, 0);
+    spdk_nvme_qpair_process_completions(ctrlr->adminq, 0):
+        nvme_transport_qpair_process_completions(qpair, max_completions):
+            nvme_rdma_qpair_process_completions(qpair, max_completions):
+                TODO
 ```
 
 ---
@@ -325,7 +322,7 @@ nvme_ctrlr_process_init(ctrlr):
 
 流程图：
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/dev-stream-work-fn.png)
 
 函数调用栈：
 
@@ -344,15 +341,19 @@ nvme_poll_ctrlrs():
 		                    io_msg_producer->update(ctrlr);
 	                    }
                     spdk_nvme_qpair_process_completions(ctrlr->external_io_msgs_qpair, 0):
-                        // 该函数调用见后文
+                        nvme_transport_qpair_process_completions(qpair, max_completions):
+                            nvme_rdma_qpair_process_completions(qpair, max_completions):
+                                TODO
                     count = spdk_ring_dequeue(ctrlr->external_io_msgs, requests, ...); // 从外部 I/O 消息环中按需排队获取消息，存储在 requests 数组中
                     for (i < count) {
                         spdk_nvme_io_msg *io = requests[i];
                         io->fn(io->ctrlr, io->nsid, io->arg); // 调用 io 消息处理函数
                     }
                 spdk_nvme_qpair_process_completions(ctrlr->adminq, 0):
-                    // 该函数调用见后文
-                nvme_ctrlr_complete_queued_async_events(ctrlr); // 如果当前进程在 ctrlr->active_procs 中，则处理 async_events
+                    nvme_transport_qpair_process_completions(qpair, max_completions):
+                        nvme_rdma_qpair_process_completions(qpair, max_completions):
+                                TODO
+                if (active_proc): nvme_ctrlr_complete_queued_async_events(ctrlr); // 如果当前进程在 ctrlr->active_procs 中，则处理 async_events
         }
     }
 
@@ -386,6 +387,8 @@ work_fn(worker):
                         qpair = nvme_rdma_ctrlr_create_io_qpair(ctrlr, qid, opts): // 函数指针
                             nvme_rdma_ctrlr_create_qpair(ctrlr, qid, ..., opts->async_mode = true):
                                 // 与前文 fabric_ctrlr_scan 创建 adminq 类似
+                                rqpair->state = NVME_RDMA_QPAIR_STATE_INVALID; // 创建了 rqpair、设置状态为 INVALID
+	                            qpair = &rqpair->qpair;
                                 nvme_qpair_init(qpair, qid, ctrlr, qprio, num_requests, async):
                                     ... // 设置 qpair 部分字段
                                     qpair->ctrlr = ctrlr;
@@ -425,11 +428,11 @@ work_fn(worker):
                         nvme_qpair_set_state(qpair, NVME_QPAIR_CONNECTING); // 这里设置了 qpair 状态为正在连接
                         nvme_rdma_ctrlr_connect_qpair(ctrlr, qpair): // 函数指针
                             // 通过 nvme_qpair、nvme_ctrlr 移动 n 个字节得到
-                            rqpair = nvme_rdma_qpair(qpair): // rqpair 为 nvme_rdma_qpair 结构
+                            rqpair = nvme_rdma_qpair(qpair): // rqpair 为 nvme_rdma_qpair
                                 SPDK_CONTAINEROF(qpair, struct nvme_rdma_qpair, qpair):
                                     #define SPDK_CONTAINEROF(ptr, type, member) ((type *)((uintptr_t)ptr - offsetof(type, member))); 
                                     /* offsetof(...): Offset of member MEMBER in a struct of type TYPE. */
-                            rctrlr = nvme_rdma_ctrlr(ctrlr); // rctrlr 为 nvme_rdma_ctrlr 结构
+                            rctrlr = nvme_rdma_ctrlr(ctrlr); // rctrlr 为 nvme_rdma_ctrlr
                             nvme_parse_addr(&dst_addr, ctrlr->trid.traddr, &port, ...); // 解析 destination_address
                             nvme_parse_addr(&src_addr, ctrlr->opts.src_addr, &src_port, ...); // 解析 source_address
                             rdma_create_id(rctrlr->cm_channel, &rqpair->cm_id, rqpair, RDMA_PS_TCP); // 分配 communication id
@@ -442,7 +445,7 @@ work_fn(worker):
                                     ... // 经过一系列操作，最后是怎么执行回调函数 nvme_rdma_addr_resolved()？
                                     /** 这里的 rdma_process_event_start() 调用逻辑见后文 **/
                             rqpair->state = NVME_RDMA_QPAIR_STATE_INITIALIZING; // 注意这里设置了 rqpair 状态，可能用于状态机
-                            rgroup = nvme_rdma_poll_group(qpair->poll_group); // rgroup 为 nvme_rdma_poll_group 结构
+                            rgroup = nvme_rdma_poll_group(qpair->poll_group); // rgroup 为 nvme_rdma_poll_group
 		                    TAILQ_INSERT_TAIL(&rgroup->connecting_qpairs, rqpair, link_connecting); // rdma_poll_group 与 rdma_qpair 关联
                         nvme_poll_group_connect_qpair(qpair):
                             nvme_transport_poll_group_connect_qpair(qpair):
@@ -536,11 +539,11 @@ nvme_rdma_resolve_addr(rqpair, &src_addr, &dst_addr):
 
 ---
 
-## （五）数据流（发送）
+## （六）数据流（发送）
 
 流程图：
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/data-stream-send.png)
 
 函数调用栈：
 
@@ -579,7 +582,7 @@ submit_io(ns_ctx, g_queue_depth):
 	                                        req->cmd.cid = rdma_req->id;
                                             ... // 配置 rdma_req
                                         TAILQ_INSERT_TAIL(&rqpair->outstanding_reqs, rdma_req, link); // 添加到 rqpair->outstanding_reqs 队列中
-                                        TAILQ_INSERT_TAIL(&group->active_qpairs, rqpair, link_active); // rqpair 添加到 rgroup->active_qpairs 队列中
+                                        TAILQ_INSERT_TAIL(&rgroup->active_qpairs, rqpair, link_active); // rqpair 添加到 rgroup->active_qpairs 队列中
                                         // 发送请求排队
                                         spdk_rdma_qp_queue_send_wrs(rqpair->rdma_qp, wr);
                                         // 提交发送请求
@@ -595,30 +598,11 @@ submit_io(ns_ctx, g_queue_depth):
 
 ---
 
-## （六）数据流（接收）
-
-这里接收流程与后文 `检查 IO 完成情况` 类似。
-
-略。
-
-<!-- 
-流程图：
-
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/)
-
-函数调用栈：
-
-```c
-``` 
--->
-
----
-
 ## （七）数据流（检查 IO 完成情况）
 
 流程图：
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/data-stream-check-io.png)
 
 函数调用栈：
 

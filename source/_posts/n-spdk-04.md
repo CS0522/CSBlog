@@ -20,17 +20,23 @@ date: 2024-09-18 19:23:39
 
 ## NVMe
 
-> 参考[介绍 NVMe](https://blog.csdn.net/BGONE/article/details/123467570)
+> 参考[介绍 NVMe](https://blog.csdn.net/BGONE/article/details/123467570)  
+
+> 参考[NVMe 结构理论](https://blog.csdn.net/BGONE/article/details/125322755)
+
+> 参考[NVMe 控制器架构模型](https://blog.csdn.net/BGONE/article/details/125341437)
+
+> 参考[NVMe 队列模型](https://blog.csdn.net/BGONE/article/details/125355414)
 
 ### NVMe Specifications
 
-* NVM Express Base Specification 定义了主机软件通过各种基于内存的传输和基于消息的传输与非易失性内存子系统通信的协议。
+* `NVM Express Base Specification` 定义了主机软件通过各种基于内存的传输和基于消息的传输与非易失性内存子系统通信的协议。
 
-* NVM Express Management Interface Specification 为所有 NVM Express 子系统定义了一个可选的管理接口。
+* `NVM Express Management Interface Specification` 为所有 NVM Express 子系统定义了一个可选的管理接口。
 
-* NVM Express I/O Command Set Specification 定义了扩展 NVM Express Base Specification 的数据结构、features、log pages、commands 和 status 值。
+* `NVM Express I/O Command Set Specification` 定义了扩展 `NVM Express Base Specification` 的数据结构、features、log pages、commands 和 status 值。
 
-* NVM Express Transport Specification 定义了 NVMe 协议（包括控制器属性）与特定传输的绑定。
+* `NVM Express Transport Specification` 定义了 NVMe 协议（包括控制器属性）与特定传输的绑定。
 
 ### NVMe 控制器类型
 
@@ -60,6 +66,8 @@ date: 2024-09-18 19:23:39
 
 ### SQ、CQ
 
+Admin SQ、CQ 之间始终存在 1 : 1 映射，都必须运行在管理 ctrlr 的核上。
+
 * 提交队列（Submission Queues，SQ）
 
 用于发送命令到 NVMe 驱动器。主机将命令放入提交队列后，驱动器会从中取出并执行这些命令。
@@ -68,13 +76,25 @@ date: 2024-09-18 19:23:39
 
 用于接收来自 NVMe 驱动器的命令完成通知。当命令在驱动器中完成时，相关的信息会被放入完成队列。
 
-NVMe 中这两个队列为 qpair。每个命名空间可以有多个队列（通常最大为 64K），这使得 NVMe 在处理高并发读写请求时非常高效。
-
----
+NVMe 中这两个队列为 qpair。每个命名空间可以有多个队列（通常最大为 64K）。
 
 ### SGL/SGE
 
 [SGL 和 SGE](https://zhuanlan.zhihu.com/p/55142568)
+
+### NVMe 传输模型
+
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-04/nvme-transport-models.png)
+
+
+| 元素 | 基于内存的传输模型 | 基于消息的传输模型 |
+| :--: | :--: | :--: |
+| Admin SQ、CQ | 始终为 1:1 映射、且都建立在 ctrlr mgmt 核上 | 同 |
+| IO SQ、CQ | 可以 1:1 或 n:1 映射 | 只能 1:1 映射 |
+| IO SQ | 按任何顺序执行 SQ Entry、Entry 大小为 64B、物理内存位置由 PRP 或 SGL 指定 | 只支持 SGL |
+| IO CQ | 用于发布已完成命令的状态 | 同 |
+
+---
 
 ## RDMA
 
@@ -86,7 +106,7 @@ NVMe 中这两个队列为 qpair。每个命名空间可以有多个队列（通
 
 * 接收队列（Receive Queue，RQ）
 
-用于存放接收数据的请求。应用程序在接收数据前，会将接收请求放入接收队列。
+用于存放接收数据的请求。**应用程序在接收数据前，会将接收请求放入接收队列。**
 
 * 完成队列（Completion Queue，CQ）
 
@@ -118,6 +138,9 @@ RDMA 分为 `基于 Memory` 和 `基于 Messaging` 两种操作：
 
 通信过程见参考文章。
 
-## NVMe-oF
+---
 
-### 
+## NVMe over RDMA
+
+> 参考[NVMe-RDMA-Transport-Specification-1.0d](https://nvmexpress.org/wp-content/uploads/NVM-Express-RDMA-Transport-Specification-1.0d-2024.07.01-Ratified.pdf)
+

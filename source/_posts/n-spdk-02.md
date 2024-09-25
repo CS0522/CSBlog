@@ -21,8 +21,8 @@ date: 2024-08-29 15:46:24
 ## 环境准备
 
 * Ubuntu 22.04 虚拟机 x2
-    * **dev1，作为 Target 端，ip：192.168.159.142**
-    * **dev2，作为 Host 端，ip：192.168.159.143**
+    * **dev1，作为 Host 端，ip：192.168.246.129**
+    * **dev2，作为 Target 端，ip：192.168.246.130**
     * dev2 可以在 dev1 环境准备完成后进行 clone
 * 2 块虚拟硬盘：
     * SATA：用于安装 Ubuntu
@@ -171,7 +171,7 @@ void spdk_vlog(enum spdk_log_level level, const char *file, const int line, cons
 
 ```bash
 # 构建
-./configure --with-rdma
+./configure --with-rdma --enable-debug
 make
 ```
 
@@ -265,7 +265,7 @@ nvme0n1 259:0    0    50G  0 disk
 
 ## 配置 SPDK NVMe over RDMA Target 端
 
-Target 端 ip：`192.168.159.142`。
+Target 端 ip：`192.168.246.130`。
 
 ### 运行 nvmeof-setup.sh 脚本部署 RDMA Soft-RoCE
 
@@ -322,14 +322,14 @@ build/bin/nvmf_tgt & scripts/rpc.py nvmf_create_transport -t RDMA -u 8192 -i 131
 
 # 5. 添加监听
 # -a 是本机 ip，-s 是端口，可修改
-./scripts/rpc.py nvmf_subsystem_add_listener nqn.2016-06.io.spdk:cnode1 -t rdma -a 192.168.159.142 -s 4420
+./scripts/rpc.py nvmf_subsystem_add_listener nqn.2016-06.io.spdk:cnode1 -t rdma -a 192.168.246.130 -s 4420
 ```
 
 --- 
 
 ## 配置 SPDK NVMe over RDMA Host 端
 
-Host 端 ip：`192.168.159.143`。
+Host 端 ip：`192.168.246.129`。
 
 ### 运行 nvmeof-setup.sh 脚本部署 RDMA Soft-RoCE
 
@@ -348,7 +348,7 @@ Host 端 ip：`192.168.159.143`。
 
 ```bash
 # 发现
-nvme discover -t rdma -a 192.168.159.142 -s 4420
+nvme discover -t rdma -a 192.168.246.130 -s 4420
 # output: 
 # =====Discovery Log Entry 0======
 # trtype:  rdma
@@ -358,14 +358,14 @@ nvme discover -t rdma -a 192.168.159.142 -s 4420
 # portid:  0
 # trsvcid: 4420
 # subnqn:  nqn.2016-06.io.spdk:cnode1
-# traddr:  192.168.159.142
+# traddr:  192.168.246.130
 # rdma_prtype: not specified
 # rdma_qptype: connected
 # rdma_cms:    rdma-cm
 # rdma_pkey: 0x0000
 
 # 连接
-nvme connect -t rdma -n "nqn.2016-06.io.spdk:cnode1" -a 192.168.159.142 -s 4420
+nvme connect -t rdma -n "nqn.2016-06.io.spdk:cnode1" -a 192.168.246.130 -s 4420
 
 # 查看设备
 nvme list
@@ -379,27 +379,29 @@ lsblk
 
 ```bash
 # 用 spdk 自带的 perf 进行测试
-./build/bin/spdk_nvme_perf -r 'trtype:rdma adrfam:IPv4 traddr:192.168.159.142 trsvcid:4420' -q 256 -o 4096 -w randread -t 100
+./build/bin/spdk_nvme_perf -r 'trtype:rdma adrfam:IPv4 traddr:192.168.246.130 trsvcid:4420' -q 256 -o 4096 -w randread -t 100
 
+# 一些参数含义
 # -q, --io-depth <val> io depth
 # -o, --io-size <val> io size in bytes
 # -w, --io-pattern <pattern> io pattern type, must be one of: 
 # (read, write, randread, randwrite, rw, randrw)
 # -t, --time <sec> time in seconds
 # -r, --transport <fmt> Transport ID for local PCIe NVMe or NVMeoF
+# 对于同时测试多块盘，只需要添加多个 -r 指定设备地址即可
 
 # output:
 # ===== spdk_nvme_perf start =====
 # Initializing NVMe Controllers
-# Attached to NVMe over Fabrics controller at 192.168.159.142:4420: nqn.2016-06.io.spdk:cnode1
+# Attached to NVMe over Fabrics controller at 192.168.246.130:4420: nqn.2016-06.io.spdk:cnode1
 # Controller IO queue size 128, less than required.
 # Consider using lower queue depth or smaller IO size, because IO requests may be queued at the NVMe driver.
-# Associating RDMA (addr:192.168.159.142 subnqn:nqn.2016-06.io.spdk:cnode1) NSID 1 with lcore 0
+# Associating RDMA (addr:192.168.246.130 subnqn:nqn.2016-06.io.spdk:cnode1) NSID 1 with lcore 0
 # Initialization complete. Launching workers.
 # ========================================================
 #                                                                                                                     Latency(us)
 #Device Information                                                               :       IOPS      MiB/s    Average        min        max
-#RDMA (addr:192.168.159.142 subnqn:nqn.2016-06.io.spdk:cnode1) NSID 1 from core  0:    6091.58      23.80   42033.57    3583.64   87966.63
+#RDMA (addr:192.168.246.130 subnqn:nqn.2016-06.io.spdk:cnode1) NSID 1 from core  0:    6091.58      23.80   42033.57    3583.64   87966.63
 #========================================================
 #Total                                                                            :    6091.58      23.80   42033.57    3583.64   87966.63
 ```
