@@ -28,6 +28,8 @@ date: 2024-09-18 19:23:39
 
 > 参考[NVMe 队列模型](https://blog.csdn.net/BGONE/article/details/125355414)
 
+> 参考[NVMe SQ & CQ](https://datongfirmware.blogspot.com/2021/11/nvm-express-nvme-overview.html)
+
 ### NVMe Specifications
 
 * `NVM Express Base Specification` 定义了主机软件通过各种基于内存的传输和基于消息的传输与非易失性内存子系统通信的协议。
