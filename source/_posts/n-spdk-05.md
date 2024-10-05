@@ -22,9 +22,9 @@ date: 2024-09-25 10:04:41
 
 * Ubuntu 22.04 虚拟机 x4
     * **dev1，作为 Host 端，ip：192.168.246.129**
-    * **dev2，作为 Target1，ip：192.168.246.130**
-    * **dev3，作为 Target2，ip：192.168.246.131**
-    * **dev4，作为 Target3，ip：192.168.246.132**
+    * **dev2，作为 Target0，ip：192.168.246.130**
+    * **dev3，作为 Target1，ip：192.168.246.131**
+    * **dev4，作为 Target2，ip：192.168.246.132**
 * 8 块虚拟硬盘：
     * SATA x4：用于安装 Ubuntu
     * NVMe x4：用于绑定 SPDK
@@ -154,9 +154,9 @@ process_recv_completion(...):
 
 ### 接收请求后重新利用 task 并提交
 
-原 `task` 回收逻辑中，是将之前发送过的 `task` 重新利用，其中的字段都不变，仅修改 `offset_in_ios` 和 `is_read` 的值，然后创建新的 `req。`
+原 `task` 回收逻辑中，是将之前发送过的 `task` 重新利用，其中的字段都不变，仅修改 `offset_in_ios` 和 `is_read` 的值，然后创建新的 `req`。
 
-多副本的情况下，需要保证 `offset_in_ios` 和 `is_read` 一致，同时能够跟踪到 `task_index，所以修改的思路为：`
+多副本的情况下，需要保证 `offset_in_ios` 和 `is_read` 一致，同时能够跟踪到 `task_index`，所以修改的思路为：
 
 * `task->index` 在每次收到后都 `+= g_queue_depth`，这样不会导致 `task->index` 的重复（同一个 `ns` 提交多次 `task->index = n` 的请求）；
 
