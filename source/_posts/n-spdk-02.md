@@ -323,6 +323,13 @@ build/bin/nvmf_tgt & scripts/rpc.py nvmf_create_transport -t RDMA -u 8192 -i 131
 # 5. 添加监听
 # -a 是本机 ip，-s 是端口，可修改
 ./scripts/rpc.py nvmf_subsystem_add_listener nqn.2016-06.io.spdk:cnode1 -t rdma -a 192.168.246.130 -s 4420
+
+# 6. 再添加 namespace
+再加一个ns
+./scripts/rpc.py bdev_nvme_attach_controller -b NVMe2 -t PCIe -a 0000:0b:00.0
+# outout:
+# NVMe2n1
+./scripts/rpc.py nvmf_subsystem_add_ns nqn.2016-06.io.spdk:cnode1 NVMe2n1
 ```
 
 --- 

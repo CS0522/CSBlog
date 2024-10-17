@@ -120,13 +120,13 @@ process_recv_completion(...):
 
 ---
 
-## 修改 perf IO 任务逻辑 - 思路 1
+## 修改 perf IO 任务逻辑 - 初版
 
 需要考虑兼容单 `worker` 和多 `worker` 的情形。
 
 ### 同一个 IO 任务复制多份
 
-* 为 `perf_task` 添加索引序号 `index` 字段；
+* 为 `perf_task` 添加索引序号 `io_id` 字段；
 
 * 由 `main_worker` 创建 `g_queue_depth` 个 `tasks`，每个 `task` 中关联的 `ns_ctx` 指针暂时指向某个 `ns_ctx`；
 
@@ -136,7 +136,7 @@ process_recv_completion(...):
 
 ### task 一致性
 
-由 `perf` 下发和回收逻辑看出，下发到多个 `qpairs` 的 `task` 之间，会发生改变的主要是 `task->index`、`task->iovs (buffer)`、`task->md_iovs`、`offset_in_ios`、`task->is_read` 等字段和变量。因此控制当 `task->index` 相等时，其他的字段和变量也对应一致就可以满足 `task` 复制的要求。
+由 `perf` 下发和回收逻辑看出，下发到多个 `qpairs` 的 `task` 之间，会发生改变的主要是 `task->io_id`、`task->iovs (buffer)`、`task->md_iovs`、`offset_in_ios`、`task->is_read` 等字段和变量。因此控制当 `task->io_id` 相等时，其他的字段和变量也对应一致就可以满足 `task` 复制的要求。
 
 不需要要求多个 `IO` 同时发送，因此可以采取任务队列的类似思路。
 
@@ -148,7 +148,7 @@ process_recv_completion(...):
 
 * 提前通过 `srand(time(NULL))` 和 `rand()` 初始化好 `g_offset_in_ios` 和 `g_is_read`；
 
-* 每提交一个 `task` 时，从 `g_offset_in_ios` 和 `g_is_read` 中取出下标为 `task->index % (q_random_num)` 的随机值，这样就可以保证提交的下标相同的 `task` 的随机偏移量和 `r/w` 是一致的。
+* 每提交一个 `task` 时，从 `g_offset_in_ios` 和 `g_is_read` 中取出下标为 `task->io_id % (q_random_num)` 的随机值，这样就可以保证提交的下标相同的 `task` 的随机偏移量和 `r/w` 是一致的。
 
 这样的思路理论上可以保证提交的下标相同的 `task` 的随机偏移量和 `r/w` 是一致的；而 `task` 的其他字段则在创建 `g_tasks` 时就已经配置好。
 
@@ -156,11 +156,15 @@ process_recv_completion(...):
 
 原 `task` 回收逻辑中，是将之前发送过的 `task` 重新利用，其中的字段都不变，仅修改 `offset_in_ios` 和 `is_read` 的值，然后创建新的 `req`。
 
-多副本的情况下，需要保证 `offset_in_ios` 和 `is_read` 一致，同时能够跟踪到 `task_index`，所以修改的思路为：
+多副本的情况下，需要保证 `offset_in_ios` 和 `is_read` 一致，同时能够跟踪到 `task_io_id`，所以修改的思路为：
 
-* `task->index` 在每次收到后都 `+= g_queue_depth`，这样不会导致 `task->index` 的重复（同一个 `ns` 提交多次 `task->index = n` 的请求）；
+* `task->io_id` 在每次收到后都 `+= g_queue_depth`，这样不会导致 `task->io_id` 的重复（同一个 `ns` 提交多次 `task->io_id = n` 的请求）；
 
-* 重新利用 `task->index` 并提交时，会进入到 `nvme_submit_io()` 函数中，在这个函数里为 `offset_in_ios` 和 `is_read` 进行了赋值，修改为直接获取下标为 `task->index % (g_random_num)` 的已经保存在数组中的随机值。
+* 重新利用 `task->io_id` 并提交时，会进入到 `nvme_submit_io()` 函数中，在这个函数里为 `offset_in_ios` 和 `is_read` 进行了赋值，修改为直接获取下标为 `task->io_id % (g_random_num)` 的已经保存在数组中的随机值。
+
+### 多副本 IO 同步
+
+暂未考虑。
 
 ### 多个 task 内存回收
 
@@ -168,94 +172,59 @@ process_recv_completion(...):
 
 ### 修改后 IO 任务下发、回收逻辑
 
-简洁版：
+简洁版图示：
 
-```c
-/*** 下发 ***/
-// 这里可以将创建数组阶段移到 main 函数中 work_fn 阶段前
-if (worker->lcore == g_main_core) {
-    while (queue_depth > 0)
-        {
-            g_tasks[g_num_tasks] = allocate_task(ns_ctx_tmp, queue_depth--, g_num_tasks);
-            ++g_num_tasks;
-        }
-        // 赋值随机数
-        update_g_random_array(g_random_num);
-}
-
-foreach (ns_ctx) {
-    custom_submit_io(ns_ctx, g_queue_depth):
-        queue_depth = g_queue_depth;
-        while (queue_depth > 0)
-        {
-            task = deep_copy_task(g_tasks[g_queue_depth - queue_depth], ns_ctx);
-            --queue_depth;
-            submit_single_io(task): 
-                ... // 直接从 g_offset_ios 和 g_is_read 中获取
-                ... // 提交
-        }
-}
-
-/*** 回收 ***/
-...
-process_recv_completion(...):
-    ... // rdma_req 打上 RECV_COMPLETED 标记
-    ... // 因为是同一个 rdma_req，所以在发送成功后已经有 SEND_COMPLETED 标记
-    ... // 如果同时有 RECV 和 SEND 完成标记，则会进行下一步
-    io_complete(task):
-        task_complete(task):
-            if (ns_ctx->is_draining):
-                // 如果超过时间，啥都不做
-            else {
-                task->index += g_queue_depth;
-                submit_single_io(task):
-                ... // 没有超过时间，则会重新利用 task、设置 random offset 和 random read/write
-            }
-// 在 cleanup 阶段统一释放
-cleanup:
-    // 释放 tasks 和 buffer
-    while (g_num_tasks-- > 0)
-    {
-        spdk_dma_free(g_tasks[g_num_tasks]->iovs[0].iov_base);
-		free(g_tasks[g_num_tasks]->iovs);
-		spdk_dma_free(g_tasks[g_num_tasks]->md_iov.iov_base);
-    }
-    free(g_tasks);
-```
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-05/rep-01.png)
 
 ---
 
-## 修改 perf IO 任务逻辑 - 思路 2
+## 修改 perf IO 任务逻辑 - 优化后
 
-需要考虑兼容单 `worker` 和多 `worker` 的情形。
+假设在单 `worker` 情形。
 
 ### 同一个 IO 任务复制多份
 
-* 为每个 ns_ctx 创建一个任务队列，用来存储**副本 task**；
+* 分主从副本 `main_task` 和 `rep_task`，其中 `main_task` 维护了一个副本队列，包括自己在内的所有副本；
 
-* 每个 ns_ctx 创建一个 task、在设置了 offset 和 is_read 后，提交 task 前，将 task 复制到每个任务队列中；
+* 每个副本都有指向主副本 `main_task` 的指针字段；
 
-* 每个 ns_ctx 在创建 task 前，都需要检查任务队列是否为空：为空，则创建 task 然后复制到多个任务队列中；非空，则循环从任务队列中取出副本 task（需要注意 `queue_depth`），然后再创建一个 task 并复制到多个任务队列中；
+* 每个 `worker` 都可以感知到所有 `ns_ctx`；
 
-* 如何为 task 加上索引？初步考虑用 `task->index = ns 索引序号 + task 索引序号` 的方式构建索引：
-    * 需要为每个 ns_entry 添加索引序号字段 `ns_index`；
-    * 为 task 添加索引序号字段 `index`。
-    其中，`task->index` 为 `uint32_t`，32 位，高 2 位来表示 `ns 索引序号`，剩下的 30 位来表示 `task 索引序号`，以此来构建唯一 `task->index`。
+* `worker` 遍历其所有 `ns_ctx`，第一个对应的副本为主副本；当创建主副本后，其他的 `ns_ctx` 对应的副本都为从副本。
 
-* 因此需要每个 ns_ctx 有一个提交 task 计数。
 
 ### task 一致性
 
-一致。
+* 当主副本设置完 io 偏移量以及随机读写后，遍历其副本队列，同步给所有从副本；
+
+* 然后执行提交 IO 任务的逻辑。
 
 ### 接收请求后重新利用 task 并提交
 
-与上面的流程一致。
+* `task->io_id` 在每次收到后都 `+= g_queue_depth`，这样不会导致 `task->io_id` 的重复（同一个 `ns` 提交多次 `task->io_id = n` 的请求）；
+
+* 重新利用 `task->io_id` 并提交时，会进入到 `nvme_submit_io()` 函数中，在这个函数里为 `offset_in_ios` 和 `is_read` 进行了重新随机赋值，之后主副本再次同步给所有从副本。
+
+### 多副本 IO 同步
+
+存在两次同步：
+
+1. 下发同一个 IO 任务时，提交主副本。在主副本提交前遍历其副本队列，将他们都提交到相应 NS 的队列；
+
+2. 任务完成后，主副本的计数器满足要求才代表该 IO 任务完成。即当所有副本均完成后，该 IO 任务才算完成，然后才对主副本重新设置。
+
+因此可能会造成某个 IO 任务的某个副本还没有完成，从而导致下一个 IO 无法下发的情况，但理论上这与实际不符。
 
 ### 多个 task 内存回收
 
+* 达到运行时间后，回收主副本；
+
+* 每个副本指向的 `iovs` 内存地址只释放一次，而每个副本都要被回收释放。
 
 ### 修改后 IO 任务下发、回收逻辑
 
+简洁版图示：
+
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-05/rep-02.png)
 
 ---

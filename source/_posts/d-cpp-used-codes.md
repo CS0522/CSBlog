@@ -445,3 +445,125 @@ if (unlikely(a>b)){
 同样的，`unlikely()` 的作用就是告诉编译器，`a<=b` 可能行大，`fun2()` 紧跟前面程序。
 
 总之，`likely` 和 `unlikely` 的功能就是添加 cache 的命中率，提高系统执行速度。
+
+## 条件编译与 CFLAGS
+
+条件编译：
+
+```c
+#ifdef PERF_LATENCY_LOG
+    uint32_t io_id;
+    ...
+    clock_gettime(...);
+#endif
+```
+
+意思是，只有当在编译时宏 `PERF_LATENCY_LOG` 被定义了，`#ifdef ... #endif` 中的代码块才会被编译并执行；否则该代码块不会被编译执行。
+
+这个宏可以在多个地方定义：
+
+### 定义在头文件中
+
+```c
+// util.h
+#define PERF_LATENCY_LOG
+...
+```
+
+### 在 CMakeLists.txt 中
+
+通过 `CFLAGS` 变量。
+
+* 全局编译
+
+```bash
+set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O0 -g")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O0 -g")
+```
+
+* 区分编译
+
+```bash
+set(CMAKE_C_FLAGS_DEBUG "${CMAKE_C_FLAGS_DEBUG} -DDEBUG")
+set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -DDEBUG")
+
+set(CMAKE_CXX_FLAGS_Release "${CMAKE_CXX_FLAGS_Release} -DNDBUG")
+set(CMAKE_C_FLAGS_Release "${CMAKE_C_FLAGS_Release} -DNDBUG")
+```
+
+对于 `Debug` 模式，编译选项实际使用的值是 `CMAKE_CXX_FLAGS` 和 `CMAKE_CXX_FLAGS_DEBUG` 的值的组合（不管 `CMAKE_CXX_FLAGS_RELEASE` 设置什么值都不会被加入到编译选项中）。
+
+对于 `Release` 模式，编译选项实际使用的值是 `CMAKE_CXX_FLAGS` 和 `CMAKE_CXX_FLAGS_RELEASE` 的值的组合（不管 `CMAKE_CXX_FLAGS_DEBUG` 设置什么值都不会被加入到编译选项中）。
+
+```bash
+mkdir debug
+cd debug
+cmake -DCMAKE_BUILD_TYPE=Debug ..
+make
+```
+
+```bash
+mkdir release
+cd release
+cmake -DCMAKE_BUILD_TYPE=Release ..
+make
+```
+
+### 在 Makefile 中
+
+通过 `CFLAGS` 变量。
+
+```makefile
+# Makefile
+# 直接赋值或者追加
+CFLAGS = -g -Wall
+CFLAGS += -DPERF_LATENCY_LOG
+```
+
+### 通过 make 命令
+
+```makefile
+# Makefile
+CFLAGS=$(CFLAG)
+CFLAGS+=-g -Wall
+...
+```
+
+输入 `make` 编译命令：
+
+```bash
+make CFLAG=-DPERF_LATENCY_LOG
+```
+
+### 在 configure 文件中
+
+`configure` 文件本质可以看成是 `shell` 脚本文件，用来在 `make` 前配置 `make` 参数。
+
+可以在 `configure` 文件中根据 `configure` 的参数来设置 `make` 的 `CFLAGS` 变量值。
+
+这种情况一般是存在多级 `Makefile`，项目通过 `configure` 来配置。
+
+```sh
+# configure
+...
+# 添加 PERF_LATENCY_LOG
+        --with-perf-latency-log)
+            CONFIG[PERF_LATENCY_LOG]=y
+            ;;
+...
+
+# CFLAGS 添加相应宏
+if [[ "${CONFIG[PERF_LATENCY_LOG]}" = "y" ]]; then
+    echo -n "Configuring PERF_LATENCY_LOG..."
+    CFLAGS="${CFLAGS} -DPERF_LATENCY_LOG"
+    echo "done."
+fi
+
+# CONFIG
+# perf latency log
+CONFIG_PERF_LATENCY_LOG=n
+```
+
+这样在 `./configure` 时，加上 `--with-perf-latency-log` 参数，就可以在 `CFLAGS` 变量中添加 `-DPERF_LATENCY_LOG` 宏定义，再输入 `make` 就不需要输入参数了。
+
+## 

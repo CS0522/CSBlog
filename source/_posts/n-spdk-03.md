@@ -110,6 +110,16 @@ register_controllers():
     }
 ```
 
+初始化大体步骤：
+
+* 解析输入参数，初始化 SPDK、DPDK 环境；
+* 创建、注册 SPDK 工作线程；
+* 通过解析参数得到的 `transport id`、进行**异步设备探测**、通过**状态机**获取设备（控制器、`NS` 等）信息、注册设备（创建 `entry` 通过尾队列维护）等。
+
+注意**异步**以及控制器设备注册时的**状态机**。这一部分也会发送少量请求。
+
+并且刚开始的 `trid` 并不包含任何真正信息，作用就是给程序指明参数提供了有哪些 `trid` 需要去探测。
+
 ---
 
 ## （二）控制流（初始化 - fabric_ctrlr_scan）
@@ -201,6 +211,14 @@ nvme_rdma.c: nvme_fabric_ctrlr_scan(probe_ctx, ...):
 		                TAILQ_INSERT_TAIL(&probe_ctx->init_ctrlrs, ctrlr, tailq);
         }
 ```
+
+这部分是扫描创建 ctrlr 核心函数。大体步骤：
+
+* 创建 `discovery_ctrlr` 和其 `Admin QP`，通过不完全状态机，作用是获取 `discovery_log_page`；
+* `discovery_log_page` 其中包含了 `ctrlr` 真正有用的信息如 `trid`、`subnqn` 等，用来构建 `io_ctrlr`；
+* `io_ctrlr` 经过完全状态机的状态转移，直到 READY 状态，加入到 `init_ctrlrs` 队列中。
+
+注意 `ctrlr` 的状态机，不同的状态执行不同的函数，如识别 NS、获取 Data 等，会通过 `Admin QP` 发送 `identify` 请求。
 
 ---
 
@@ -315,6 +333,8 @@ nvme_ctrlr_process_init(ctrlr):
             nvme_rdma_qpair_process_completions(qpair, max_completions):
                 TODO
 ```
+
+不同状态执行不同的函数，函数执行完毕后会手动改变 `ctrlr` 的状态，从而使 `ctrlr` 进入下一个状态。
 
 ---
 
@@ -517,13 +537,21 @@ unregister_workers();
 spdk_env_fini();
 ```
 
+工作任务大体步骤：
+
+* 一般每个线程管理一个 NS；
+* 为每个 NS 创建 n 个（假设一个）`io QP`；
+* `io QP` 需要与 Target 端 `io QP` 建立对应连接，因此需要建立 RDMA 连接；
+* 为 `io QP` 创建轮询组 `poll_group` 以及轮询器 `poller`；
+* 准备发送 IO 和检查 IO 完成情况。
+
 ---
 
 ## （五）控制流（建立 RDMA 层连接）
 
-流程图：
+<!-- 流程图：
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-03/) -->
 
 函数调用栈：
 
@@ -534,8 +562,12 @@ nvme_rdma_resolve_addr(rqpair, &src_addr, &dst_addr):
     rdma_resolve_addr(rqpair->cm_id, src_addr, dst_addr, ...);
     // 开始处理 rdma events
     nvme_rdma_process_event_start(rqpair, RDMA_CM_EVENT_ADDR_RESOLVED = 0, nvme_rdma_addr_resolved):
-        TODO
+        // 略
 ```
+
+RDMA 建立连接部分略。
+
+在这一步中，在 RDMA 建立连接完成后，`io QP` 创建了 rdma_req 池和 rdma_rsp 池，并且 rsps 全部压到 `RQ` 中。
 
 ---
 
@@ -553,7 +585,7 @@ submit_io(ns_ctx, g_queue_depth):
     while (queue_depth-- > 0) {
 		task = allocate_task(ns_ctx, queue_depth):
             nvme_setup_payload(task, pattern = queue_depth % 8 + 1):
-                ... // TODO 设置 io 负载
+                ... // 设置 io 负载
             task->ns_ctx = ns_ctx;
 		submit_single_io(task):
             nvme_submit_io(task, task->ns_ctx, task->ns_ctx->entry, offset_in_ios):
@@ -595,6 +627,14 @@ submit_io(ns_ctx, g_queue_depth):
                                 
 	}
 ```
+
+发送 IO 大体步骤：
+
+* 以 IO 任务的形式下发。这个 IO 任务在后续被接收完成后会被复用，直到超过运行时间后回收内存并释放；
+* IO 任务可以看作是 `io queue` 的槽，一共会有 `g_queue_depth` 个 IO 任务；
+* 在发送前，设置 IO 任务的 io 偏移和随机读写，然后提交任务生成 `nvme_req` 请求；
+* `nvme SQ` 的队列长度一般小于 `io queue` 的 `g_queue_depth`，所以会出现 IO 任务排队；
+* 通过层层封装、转换，经过 `perf_task -> nvme_req -> rdma_req` 后，通过 RDMA ibverbs 发送请求。
 
 ---
 
@@ -710,5 +750,13 @@ check_io(ns_ctx):
                         }
             }
 ``` 
+
+检查 IO 完成情况大体步骤：
+
+* `CQ` 收到 `CQE` 后，通过结构体偏移得到 `WQE`，判断是 `SEND` 还是 `RECV` 请求的完成消息；
+* 只有当 `WQE` 指向的 `rdma_req` 的 `completion_flags` 为 `SEND_COMPLETED & RECV_COMPLETED` 即发送和接收都完成了，才判断为 IO 任务完成；
+* 通过 callback 得到原始 IO 任务；
+* 记录时间，统计信息；
+* IO 任务被复用，重新设置 io 偏移量以及随机读写，重复发送过程。
 
 ---
