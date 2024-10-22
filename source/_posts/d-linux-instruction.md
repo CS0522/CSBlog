@@ -524,6 +524,30 @@ mv /etc/resolv.conf  /etc/resolv.conf.bak
 ln -s /run/systemd/resolve/resolv.conf /etc/resolv.conf
 ```
 
+### 网卡消失
+
+问题：
+
+```bash
+sudo lshw -c network
+
+# output:
+# -network DISABLED
+```
+
+解决方案：
+
+```bash
+sudo service NetworkManager stop
+sudo rm  /var/lib/NetworkManager/NetworkManager.state
+sudo vi /etc/NetworkManager/NetworkManager.conf 
+# 打开 .conf 文件后，将 managed=false 改为 managed=true
+sudo service NetworkManager start
+```
+
+`ip link show` 命令可以查看所有网卡。
+
+
 ### 文件分割 sh 脚本
 
 已知文件大小，利用 `dd` 命令

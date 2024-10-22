@@ -330,6 +330,16 @@ build/bin/nvmf_tgt & scripts/rpc.py nvmf_create_transport -t RDMA -u 8192 -i 131
 # outout:
 # NVMe2n1
 ./scripts/rpc.py nvmf_subsystem_add_ns nqn.2016-06.io.spdk:cnode1 NVMe2n1
+
+# 获取 subsystem 信息
+./scripts/rpc.py nvmf_get_subsystems
+# 删除 subsystem
+./scripts/rpc.py nvmf_delete_subsystem nqn.2016-06.io.spdk:cnode1
+# 删除 ns
+# ns_id 通过 nvmf_get_subsystems 获取
+./scripts/rpc.py nvmf_remove_ns <nsid>
+# 移除监听
+./scripts/rpc.py nvmf_subsystem_remove_listener nqn.2016-06.io.spdk:cnode1 -t rdma -a 192.168.246.130 -s 4420
 ```
 
 --- 
