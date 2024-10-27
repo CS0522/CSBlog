@@ -582,3 +582,25 @@ sftp> get -a nsg_100G.img
 # 上传
 sftp> put -a nsg_100G.img
 ```
+
+### 将命令放至后台
+
+* `&` 放后台
+
+    ```bash
+    sleep 10s &
+    ```
+
+* `nohup` 命令
+
+    ```bash
+    nohup sleep 10s &
+    ```
+
+* `&>/dev/null &` 重定向
+
+    输出重定向、完全挂后台
+
+    ```bash
+    ./build/bin/nvmf_tgt &>/dev/null &
+    ```
