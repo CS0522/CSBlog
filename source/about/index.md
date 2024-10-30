@@ -20,6 +20,26 @@ sidebar: [blogger, category, guide, tagcloud, webinfo]
 
 ## 教育经历
 
+<style>
+table {
+    width: 100%;
+}
+
+table th:first-of-type {
+    width: 20%;
+}
+table th:nth-of-type(2) {
+    width: 30%;
+}
+table th:nth-of-type(3) {
+    width: 20%;
+}
+
+td, th {
+    border: none!important;
+}
+</style>
+
 | 时间 | 院校 | 专业 |
 | :--: | :--: | :--: |
 | 2020.09 - 2024.07 | 大连理工大学 | 软件工程 |
