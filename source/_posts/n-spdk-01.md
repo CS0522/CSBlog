@@ -62,7 +62,7 @@ SPDK 主要运用了两项关键技术：**用户态 I/O（UI/O）和轮询（po
 
 ## SPDK 软件架构
 
-![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-01/spdk-architecture.jpeg)
+![](https://cdn.jsdelivr.net/gh/CS0522/CSBlog/source/_posts/n-spdk-01/spdk-architecture.png)
 
 ### 底层：驱动层（Drivers）
 
