@@ -26,7 +26,9 @@ date: 2023-10-22 00:00:00
 ## 搭建环境
 
 ### 安装 Hexo
+
 准备环境：
+
 * nvm（参考 Node & Vue 文档）
 
 * node.js（参考 Node & Vue 文档，版本 > 16.15.0）
@@ -34,12 +36,15 @@ date: 2023-10-22 00:00:00
 * git
 
 npm 安装 Hexo：
+
 ```bash
 npm install -g hexo-cli
 ```
 
 ### 建立项目
+
 在指定文件夹中新建项目
+
 ```bash
 hexo init MyBlog
 cd MyBlog
@@ -47,37 +52,46 @@ npm install
 ```
 
 #### _config.yml
+
 主要配置文件，配置网站参数
 
 #### scaffolds
+
 模板文件，填写头部 front-matter 内容
 
 #### source
+
 源文件，包括 about、category 页面、images/ 等资源文件
 
 图片资源引用：`/images/XXX`
 
 ### 部署到远程仓库
+
 1. 安装模块
-    ```bash
-    npm install hexo-deployer-git --save
-    ```
+
+```bash
+npm install hexo-deployer-git --save
+```
 
 2. 修改 _config.yml
-   ```yml
-   deploy:
-     type: git
-     repository: git@github.com:CS0522/CS0522.github.io.git
-     branch: master
-    ```
+   
+```yml
+deploy:
+  type: git
+  repository: git@github.com:CS0522/CS0522.github.io.git
+  branch: master
+```
 
 3. 推送
-   ```bash
-   hexo clean && hexo g && hexo d
-   ```
+
+```bash
+hexo clean && hexo g && hexo d
+```
 
 ### 配置网站
+
 仅列出我修改的地方
+
 ```yml
 # 修改图标
 favicon: /images/cicon.ico
@@ -129,44 +143,52 @@ deploy:
 
 ### 常用命令
 1. 建立
-   ```bash
-   hexo init <pro_name>
-   cd <pro_name>
-   npm install
-   ```
+
+```bash
+hexo init <pro_name>
+cd <pro_name>
+npm install
+```
 
 2. 新建文章
-   ```bash
-   hexo new [page/post/docs] [-p about/me] "<file_name>"
-   # hexo new page about/me "About Me"
-   ```
+
+```bash
+hexo new [page/post/docs] [-p about/me] "<file_name>"
+# hexo new page about/me "About Me"
+```
 
 3. 生成、预览
-   ```bash
-   hexo clean
-   hexo g
-   hexo s
-   ```
+
+```bash
+hexo clean
+hexo g
+hexo s
+```
 
 4. 部署推送
-   ```bash
-   hexo d
-   ```
+
+```bash
+hexo d
+```
 
 ## 网站主题
 
 ### 安装 Volantis
+
 1. 修改主题 _config.yml
-   ```yml
-   theme: volantis
-   ```
+
+```yml
+theme: volantis
+```
 
 2. 安装 Volantis
-   ```bash
-   npm install hexo-theme-volantis --save
-   ```
+
+```bash
+npm install hexo-theme-volantis --save
+```
 
 ### 配置主题
+
 1. 原主题配置文件位于 `./node_modules/hexo-theme-volantis/_config.yml` 下
 
 2. 项目根目录创建 `_config.volantis.yml` 以自定义主题。其中的内容可以直接复制 1 中的文件内容，再按需修改
@@ -551,6 +573,7 @@ plugins:
 
 ## 网站页面
 ### 归档页面
+
 自动生成
 
 ### 关于页面
@@ -652,31 +675,38 @@ twikoo:
 例子：
 
 * 链接使用文章的标题
-  ```md
-  {% post_link hexo-3-8-released %}
-  ```
-  Hexo 3.8.0 Released
+
+```md
+{% post_link hexo-3-8-released %}
+```
+Hexo 3.8.0 Released
 
 * 链接使用自定义文字
-  ```md
-  {% post_link hexo-3-8-released '通往文章的链接' %}
-  ```
-  通往文章的链接
+
+```md
+{% post_link hexo-3-8-released '通往文章的链接' %}
+```
+  
+通往文章的链接
 
 * 对标题的特殊字符进行转义
-  ```md
-  {% post_link hexo-4-released 'How to use <b> tag in title' %}
-  ```
-  How to use \<b> tag in title
+  
+```md
+{% post_link hexo-4-released 'How to use <b> tag in title' %}
+```
+
+How to use \<b> tag in title
 
 * 禁止对标题的特殊字符进行转义
-  ```md
-  {% post_link hexo-4-released '<b>bold</b> custom title' false %}
-  ```
-  <b>bold</b> custom title
+
+```md
+{% post_link hexo-4-released '<b>bold</b> custom title' false %}
+```
+<b>bold</b> custom title
 
 
 ### 2. 数学公式渲染？
+
 > 更换渲染引擎
 
 ```bash
@@ -693,6 +723,7 @@ sudo apt install pandoc
 
 
 ### 3. 网站页脚文字修改？
+
 > 进入 ./node_modules/hexo-theme-volantis/layout/_partial/footer.ejs
 
 ```js
@@ -706,6 +737,7 @@ sudo apt install pandoc
 
 
 ### 4. CDN 加速？
+
 > 使用 jsdelivr CDN 加速访问
 
 1. 创建存放静态资源的仓库（CSBlog）

@@ -23,49 +23,55 @@ date: 2023-10-22 18:01:26
 > [VSCode 创建启动器](https://blog.csdn.net/weixin_39289876/article/details/118484127)
 
 ### C++, Java 环境安装配置
-  ```bash
-  sudo apt install g++ gdb make build-essential ninja-build rsync zip
   
-  sudo apt install openjdk-11-jdk
+```bash
+sudo apt install g++ gdb make build-essentialninja-build rsync zip
   
-  java -version
+sudo apt install openjdk-11-jdk
+
+java -version
   
-  # JAVA_HOME变量配置 
-  echo "JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/bin/java" >> ~/.bashrc
-  echo $JAVA_HOME
-  ```
+# JAVA_HOME变量配置 
+echo "JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/binjava" >> ~/.bashrc
+echo $JAVA_HOME
+```
 
 ### 配置root密码
-  ```bash
-  sudo passwd
-  ```
+
+```bash
+sudo passwd
+```
 
 ### 中文包  
-  ```bash
-  sudo apt install language-pack-zh-hans
-  sudo update-locale LANG=zh_CN.UTF-8
-  ```
+  
+```bash
+sudo apt install language-pack-zh-hans
+sudo update-locale LANG=zh_CN.UTF-8
+```
 
 
 ### 删除桌面回收站、用户文件图标
-  ```bash
-  gsettings set org.gnome.shell.extensions.desktop-icons  show-trash false
-  gsettings set org.gnome.shell.extensions.desktop-icons  show-home false
-  ```
+  
+```bash
+gsettings set org.gnome.shell.extensions.desktop-icons show-trash false
+gsettings set org.gnome.shell.extensions.desktop-icons show-home false
+```
 
 ### 添加监视器 system monitor
-  ```bash
-  sudo add-apt-repository ppa:fossfreedom/indicator-sysmonitor
-  sudo apt-get install -y indicator-sysmonitor
-  ```
+
+```bash
+sudo add-apt-repository ppa:fossfreedom/indicator-sysmonitor
+sudo apt-get install -y indicator-sysmonitor
+```
 
 ### sudo 不输入密码
-  ```bash
-  sudo vim /etc/sudoers
   
-  # 文末添加下句: 
-  frank ALL=(ALL:ALL) NOPASSWD: ALL
-  ```
+```bash
+sudo vim /etc/sudoers
+
+# 文末添加下句: 
+frank ALL=(ALL:ALL) NOPASSWD: ALL
+```
 
 ---
 
@@ -256,7 +262,24 @@ cp ./* /usr/share/sangfor/EasyConnect
 # 启动 EasyConnect
 ```
 
+### 安装 VMware 17.5.2 虚拟机
 
+```bash
+sudo dpkg -i ./*.bundle
+
+# 编译 vmmon、vmnet 模块
+sudo apt install gcc-12
+
+# clone 补充模块
+git clone https://github.com/mkubecek/vmware-host-modules
+
+git checkout -t origin/workstation-17.5.1
+
+sudo make
+sudo make install 
+
+sudo /etc/init.d/vmware start
+```
 
 ## 常用命令 / 解决方案
 
