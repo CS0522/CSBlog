@@ -566,4 +566,22 @@ CONFIG_PERF_LATENCY_LOG=n
 
 这样在 `./configure` 时，加上 `--with-perf-latency-log` 参数，就可以在 `CFLAGS` 变量中添加 `-DPERF_LATENCY_LOG` 宏定义，再输入 `make` 就不需要输入参数了。
 
+## 局部变量块作用域
+
+大括号 `{}` 在 C++ 中用于定义一个作用域。在这个作用域内，局部变量被创建并使用；当这个作用域结束时，局部变量会被销毁释放资源。
+
+```cpp
+{
+    std::string string_val;
+    // If it cannot pin the value, it copies the value to its internal buffer.
+    // The intenral buffer could be set during construction.
+    PinnableSlice pinnable_val(&string_val);
+    db->Get(ReadOptions(), db->DefaultColumnFamily(), "key2", &pinnable_val);
+    assert(pinnable_val == "value");
+    // If the value is not pinned, the internal buffer must have the value.
+    assert(pinnable_val.IsPinned() || string_val == "value");
+}
+// 在外面不能访问 string_val 变量
+```
+
 ## 

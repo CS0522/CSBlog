@@ -1,5 +1,5 @@
 ---
-title: 【学习笔记-存储】SPDK（二）：SPDK NVMe over RDMA 部署
+title: 【学习笔记】SPDK（二）：SPDK NVMe over RDMA 部署
 tags:
   - 存储
   - SPDK

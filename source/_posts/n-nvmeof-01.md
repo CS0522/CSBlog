@@ -1,5 +1,5 @@
 ---
-title: 【学习笔记-存储】NVMeoF（一）：基础知识
+title: 【学习笔记】NVMeoF（一）：基础知识
 tags:
   - 存储
   - NVMe

@@ -1,5 +1,5 @@
 ---
-title: 【学习笔记-存储】SPDK（三）：spdk_nvme_perf 代码浅析
+title: 【学习笔记】SPDK（三）：spdk_nvme_perf 代码浅析
 tags:
   - 存储
   - SPDK

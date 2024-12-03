@@ -1,5 +1,5 @@
 ---
-title: 【学习笔记-存储】SPDK（四）：补充知识记录
+title: 【学习笔记】SPDK（四）：补充知识记录
 tags:
   - 存储
   - SPDK

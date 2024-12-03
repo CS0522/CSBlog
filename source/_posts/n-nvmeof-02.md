@@ -1,5 +1,5 @@
 ---
-title: 【学习笔记-存储】NVMeoF（二）：NVMe over RDMA 环境部署
+title: 【学习笔记】NVMeoF（二）：NVMe over RDMA 环境部署
 tags:
   - 存储
   - NVMe

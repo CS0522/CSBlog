@@ -1,5 +1,5 @@
 ---
-title: 【学习笔记-存储】SPDK（六）：CloudLab 脚本自动化部署 SPDK
+title: 【学习笔记】SPDK（六）：CloudLab 脚本自动化部署 SPDK
 tags:
   - 存储
   - SPDK
