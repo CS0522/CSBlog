@@ -13,7 +13,7 @@ cover: false
 date: 2023-10-22 18:01:26
 ---
 
-记录 Linux(Ubuntu) 一些使用方法
+记录 Linux (Ubuntu) 一些使用方法
 
 <!-- more -->
 
@@ -22,21 +22,94 @@ date: 2023-10-22 18:01:26
 > [Ubuntu 备份与恢复](https://blog.csdn.net/sinat_27554409/article/details/78227496)  
 > [VSCode 创建启动器](https://blog.csdn.net/weixin_39289876/article/details/118484127)
 
-### C++, Java 环境安装配置
+### C++ 环境安装配置
   
 ```bash
-sudo apt install g++ gdb make build-essentialninja-build rsync zip
-  
-sudo apt install openjdk-11-jdk
-
-java -version
-  
-# JAVA_HOME变量配置 
-echo "JAVA_HOME=/usr/lib/jvm/java-11-openjdk-amd64/binjava" >> ~/.bashrc
-echo $JAVA_HOME
+sudo apt install g++ gdb make build-essential ninja-build zip vim screen
 ```
 
-### 配置root密码
+### Java、maven3 环境配置
+
+```bash
+# ----- Java -----
+# Ubuntu
+sudo apt install openjdk-16-jdk
+
+# CentOS
+sudo yum install java-1.8.0-openjdk* -y
+
+java -version
+javac -version
+
+# 查看 java 安装位置
+which java
+ls -lrt /usr/bin/java
+ls -lrt /etc/alternatives/java
+
+# JAVA_HOME 变量配置
+sudo vim /etc/profile
+
+# 添加：
+# jdk 1.8
+export JAVA_HOME=/usr/lib/jvm/java-1.8.0-openjdk-1.8.0.362.b08-3.el8.x86_64
+export JRE_HOME=$JAVA_HOME/jre
+export CLASSPATH=$JAVA_HOME/lib:$JRE_HOME/lib:$CLASSPATH
+export PATH=$JAVA_HOME/bin:$JRE_HOME/bin:$PATH
+
+# jdk 16
+export JAVA_HOME=/usr/lib/jvm/java-16.0.1-openjdk-amd64
+export PATH=$JAVA_HOME/bin:$PATH
+
+source /etc/profile
+
+# ----- maven3 -----
+
+# Ubuntu
+sudo apt-get install maven
+
+# CentOS
+wget https://dlcdn.apache.org/maven/maven-3/3.9.9/binaries/apache-maven-3.9.9-bin.tar.gz
+tar zxf apache-maven-3.9.9-bin.tar.gz
+mv apache-maven-3.9.9 maven3
+
+# 当前路径为 /home/frank
+# maven3 路径为 /home/frank/maven3
+
+# 编辑 maven3/conf/settings.xml
+# 指定源
+<mirrors>
+    <mirror> 
+         <id>alimaven</id> 
+         <name>aliyun maven</name> 
+         <url>https://maven.aliyun.com/nexus/content/groups/public/</url> 
+         <mirrorOf>central</mirrorOf> 
+     </mirror>
+</mirrors>
+
+# 指定版本
+<profiles>
+    <profile>
+      <id>jdk-1.8</id>
+      <activation>
+        <activeByDefault>true</activeByDefault>
+        <jdk>1.8</jdk>
+      </activation>
+      <properties>
+        <maven.compiler.source>1.8</maven.compiler.source>
+        <maven.compiler.target>1.8</maven.compiler.target>
+        <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+      </properties>
+    </profile>
+</profiles>
+
+# 配置 maven 环境变量
+sudo vim /etc/profile
+export MAVEN_HOME=/home/frank/maven3
+export PATH=$PATH:$JAVA_HOME/bin:$MAVEN_HOME/bin
+source /etc/profile
+```
+
+### 配置 root 密码
 
 ```bash
 sudo passwd
