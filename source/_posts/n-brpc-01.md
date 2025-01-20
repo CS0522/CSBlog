@@ -1,15 +1,13 @@
 ---
-title: 【学习笔记】分布式 KVDB（一）：bRPC 框架编译安装
+title: 【学习笔记】bRPC（一）：编译与安装
 tags:
   - 存储
-  - 分布式 KVDB
-  - bPRC
+  - RPC
 toc: true
 languages:
   - zh-CN
 categories:
   - 学习笔记
-  - 存储
 comments: false
 cover: false
 date: 2024-12-03 15:12:28

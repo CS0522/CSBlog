@@ -584,4 +584,45 @@ CONFIG_PERF_LATENCY_LOG=n
 // 在外面不能访问 string_val 变量
 ```
 
+## std::async
+
+以异步方式执行函数或者任务，并且能够在未来某个时间点获取执行结果。
+
+```cpp
+#include <future>
+#include <iostream>
+
+std::future<int> f1 = std::async(std::launch::async, [](){
+        return 8; 
+    });
+ 
+cout<<f1.get()<<endl; //output: 8
+ 
+std::future<int> f2 = std::async(std::launch::async, [](){
+        cout<<8<<endl;
+    });
+ 
+f2.wait(); //output: 8
+ 
+std::future<int> future = std::async(std::launch::async, [](){
+        std::this_thread::sleep_for(std::chrono::seconds(3));
+        return 8; 
+    });
+  
+    std::cout << "waiting...\n";
+    std::future_status status;
+    do {
+        status = future.wait_for(std::chrono::seconds(1));
+        if (status == std::future_status::deferred) {
+            std::cout << "deferred\n";
+        } else if (status == std::future_status::timeout) {
+            std::cout << "timeout\n";
+        } else if (status == std::future_status::ready) {
+            std::cout << "ready!\n";
+        }
+    } while (status != std::future_status::ready);
+  
+    std::cout << "result is " << future.get() << '\n';
+```
+
 ## 
