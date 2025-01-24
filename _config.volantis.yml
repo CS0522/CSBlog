@@ -370,7 +370,7 @@ plugins:
     enable: true
 
   highlightjs:
-    enable: true # Please set hexo.config.highlight.enable = false !!!
+    enable: false # Please set hexo.config.highlight.enable = false !!!
     js: https://cdn.jsdelivr.net/gh/highlightjs/cdn-release@11/build/highlight.min.js
     css: https://cdn.jsdelivr.net/npm/highlight.js@11.10.0/styles/vs2015.css
     # more: https://www.jsdelivr.com/package/npm/highlight.js?path=styles
@@ -404,6 +404,8 @@ custom_css:
   body:
     effect: [blur] # [shadow, floatable, blur]
   # 修改字体
+  fontsize:
+    code: 16px
   fontfamily:
     logofont:
       fontfamily: 'UbuntuMono, "PingFang SC", "Microsoft YaHei", Helvetica, Arial'
@@ -423,7 +425,6 @@ custom_css:
       url: volantis-static/media/fonts/UbuntuMono/UbuntuMono-Regular.ttf # volantis-static/media/fonts/Monaco/Monaco.ttf # https://cdn.jsdelivr.net/gh/volantis-x/cdn-fonts/Monaco/Monaco.ttf
       weight: normal
       style: normal
-      size: 20px
 
 ########### 美化 ########## > end
 

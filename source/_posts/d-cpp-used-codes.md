@@ -1,5 +1,5 @@
 ---
-title: 【文档小记】记录 C++ 中使用过的有用代码
+title: 【学习笔记】记录 C++ 中使用过的有用代码
 tags:
   - C++
   - Linux
@@ -7,7 +7,7 @@ toc: true
 languages:
   - zh-CN
 categories:
-  - 文档小记
+  - 学习笔记
 comments: false
 cover: false
 date: 2024-06-29 21:46:07

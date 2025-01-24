@@ -1,13 +1,12 @@
 ---
-title: 【文档小记】记录 Python 中使用过的有用代码
+title: 【学习笔记】记录 Python 中使用过的有用代码
 tags:
   - Python
-  - matplotlib
 toc: true
 languages:
   - zh-CN
 categories:
-  - 文档小记
+  - 学习笔记
 comments: false
 cover: false
 date: 2024-04-03 00:55:17
