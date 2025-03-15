@@ -1,5 +1,5 @@
 ---
-title: 【文档小记】记录 VSCode + CMake 多可执行文件配置
+title: 【文档小记】VSCode + CMake 多可执行文件配置
 tags:
   - VSCode
   - CMake
