@@ -294,3 +294,15 @@ git add .
 git commit -m 'update .gitignore'
 git push origin master
 ```
+
+### Https 拉取私有仓库
+
+GitHub 中生成 Personal Tokens (classic)，得到一个 Token，保存到一个不会遗忘的位置。
+
+拉取：
+
+```bash
+git clone https://oauth2:TOKEN@github.com/CS0522/nofdb.git
+```
+
+其中 `TOKEN` 替换为上一步得到的 Token。
