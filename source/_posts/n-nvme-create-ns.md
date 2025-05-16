@@ -12,7 +12,7 @@ categories:
   - 存储
 comments: false
 cover: false
-date: 2024-10-17 10:22:09
+date: 2025-05-11 10:22:09
 ---
 
 记录一次在服务器上捣鼓好久把 NVMe 盘弄没了，最后误打误撞给弄回来的经验。

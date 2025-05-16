@@ -8,6 +8,7 @@ languages:
   - zh-CN
 categories:
   - 刷题日记
+  - 思路
 comments: false
 cover: false
 date: 2024-06-09 21:06:05
@@ -210,4 +211,31 @@ public:
 };
 ```
 
-### 
+### 通过下标索引分割数组、节约时间空间开销
+
+在数组存储的二叉树中，可以通过下标索引分割的方式进行递归，而不需要重新构造新的 vector 来进行递归。
+
+```cpp
+TreeNode * build_tree(vector<int> &inorder, vector<int> &postorder, int inorder_start, int inorder_end)
+{
+    // 空节点
+    if ((inorder_end - inorder_start) == 0)
+        return nullptr;
+    // 后序遍历的最后一个节点为当前的根节点
+    int root_val = postorder[postorder.size() - 1];
+    postorder.pop_back();
+    TreeNode *root = new TreeNode(root_val);
+    // 分割中序遍历
+    vector<int>::iterator root_iter = find(inorder.begin() + inorder_start, inorder.begin() + inorder_end, root_val);
+    int root_index = (root_iter - inorder.begin());
+
+    root->right = build_tree(inorder, postorder, root_index + 1, inorder_end);
+    root->left = build_tree(inorder, postorder, inorder_start, root_index);
+
+    return root;
+}
+
+TreeNode* buildTree(vector<int>& inorder, vector<int>& postorder) {
+    return build_tree(inorder, postorder, 0, inorder.size());
+}
+```
